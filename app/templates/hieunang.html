@@ -1,0 +1,513 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Đánh giá Hiệu năng
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="py-3 px-4 shadow-lg rounded-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Dữ liệu tham khảo của các laptop theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+        <div class="mb-3">
+            <select class="form-select" id="laptopPerformanceFilterTab">
+                <option value="Văn phòng">Văn phòng</option>
+                <option value="Gaming">Gaming</option>
+            </select>
+        </div>
+        <hr>
+        <ul class="nav nav-tabs" id="performanceTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="table-tab" data-bs-toggle="tab" data-bs-target="#performanceTable" type="button" role="tab" aria-controls="performanceTable" aria-selected="true">Bảng dữ liệu</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#performanceChartTab" type="button" role="tab" aria-controls="performanceChartTab" aria-selected="false">Biểu đồ ước tính</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3" id="performanceTabsContent">
+            <div class="tab-pane fade show active" id="performanceTable" role="tabpanel" aria-labelledby="table-tab">
+                <div class="table-responsive" style="height: 420px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover" id="laptopInfoTable">
+                        <thead>
+                            <tr class="text-nowrap">
+                                <th class="text-center bg-primary-subtle">Loại</th>
+                                <th class="text-center bg-primary-subtle">Tên Model</th>
+                                <th class="text-center bg-primary-subtle">CPU</th>
+                                <th class="text-center bg-primary-subtle">RAM (GB)</th>
+                                <th class="text-center bg-primary-subtle">Card Đồ Họa</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="performanceChartTab" role="tabpanel" aria-labelledby="chart-tab">
+                <div style="height: 420px; width: 100%;" class="d-flex justify-content-center align-items-center">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const laptopPerformanceFilterTab = document.getElementById('laptopPerformanceFilterTab');
+            const laptopInfoTableBody = document.getElementById('laptopInfoTable').getElementsByTagName('tbody')[0];
+            const performanceChartCanvas = document.getElementById('performanceChart');
+            let performanceChartInstance = null;
+    
+            const laptopData = [
+                { type: 'Văn phòng', model: 'Aspire 5 A515-58-54XJ', cpu: 'i5-1235U', ram: 8, gpu: 'Intel Iris Xe Graphics' },
+                { type: 'Văn phòng', model: 'Aspire 5 A514 55-374Y', cpu: 'i3-1215U', ram: 8, gpu: 'Intel UHD Graphics' },
+                { type: 'Văn phòng', model: 'Aspire 3 A315-59-31X8', cpu: 'i3-N305', ram: 8, gpu: 'Intel UHD Graphics' },
+                { type: 'Văn phòng', model: 'Swift 3 SF314-513-51HN', cpu: 'i5-1135G7', ram: 8, gpu: 'Intel Iris Xe Graphics' },
+                { type: 'Văn phòng', model: 'Swift Go SFG14 41 R9X4', cpu: 'AMD Ryzen 5 7530U', ram: 8, gpu: 'AMD Radeon Graphics' },
+                { type: 'Văn phòng', model: 'Aspire 5 Slim A514-54-51MT', cpu: 'i5-1235U', ram: 8, gpu: 'Intel Iris Xe Graphics' },
+                { type: 'Văn phòng', model: 'Aspire 3 Spin 14 ASP14-31T-313W', cpu: 'i3-N305', ram: 8, gpu: 'Intel UHD Graphics' },
+                { type: 'Văn phòng', model: 'Swift X SFX14-51G-51W1', cpu: 'i5-11320H', ram: 8, gpu: 'NVIDIA GeForce MX350' },
+                { type: 'Văn phòng', model: 'Aspire 7 A715-51G-51CB', cpu: 'i5-10300H', ram: 8, gpu: 'NVIDIA GeForce MX350' },
+                { type: 'Văn phòng', model: 'Swift 5 SF514-56T-53GX', cpu: 'i5-1240P', ram: 16, gpu: 'Intel Iris Xe Graphics' },
+                { type: 'Gaming', model: 'Nitro 5 AN515-58', cpu: 'i5-12500H', ram: 16, gpu: 'NVIDIA GeForce RTX 4050' },
+                { type: 'Gaming', model: 'Nitro 5 AN515-46', cpu: 'AMD Ryzen 5 6600H', ram: 16, gpu: 'NVIDIA GeForce RTX 3050Ti' },
+                { type: 'Gaming', model: 'Predator Helios Neo 16 PHN16-71', cpu: 'i7-13700HX', ram: 32, gpu: 'NVIDIA GeForce RTX 4070' },
+                { type: 'Gaming', model: 'Predator Helios 18 PH18-71', cpu: 'i9-13900HX', ram: 32, gpu: 'NVIDIA GeForce RTX 4090' },
+                { type: 'Gaming', model: 'Predator Triton 500 SE PT516-52s', cpu: 'i9-12900H', ram: 32, gpu: 'NVIDIA GeForce RTX 3070 Ti' },
+                { type: 'Gaming', model: 'Predator Triton 300 SE PT314-52s', cpu: 'i7-12700H', ram: 16, gpu: 'NVIDIA GeForce RTX 3060 Ti' },
+                { type: 'Gaming', model: 'Nitro 16 AN16-41', cpu: 'AMD Ryzen 7 7735HS', ram: 16, gpu: 'NVIDIA GeForce RTX 4060' },
+                { type: 'Gaming', model: 'Predator Helios 300 PH315-55', cpu: 'i7-12700H', ram: 16, gpu: 'NVIDIA GeForce RTX 3060' },
+                { type: 'Gaming', model: 'Aspire 7 A715-76G', cpu: 'i7', ram: 16, gpu: 'NVIDIA GeForce RTX 4050' },
+                { type: 'Gaming', model: 'Predator Triton 300 PT314-51', cpu: 'i7-11375H', ram: 16, gpu: 'NVIDIA GeForce RTX 3050' },
+            ];
+    
+            function getCpuPerformanceScore(cpu) {
+                if (cpu.includes('i9') || cpu.includes('Ryzen 9')) return 4;
+                if (cpu.includes('i7') || cpu.includes('Ryzen 7')) return 3;
+                if (cpu.includes('i5') || cpu.includes('Ryzen 5')) return 2;
+                return 1;
+            }
+    
+            function getGpuPerformanceScore(gpu) {
+                if (gpu.includes('RTX 4090') || gpu.includes('RTX 3090 Ti')) return 5;
+                if (gpu.includes('RTX 4080') || gpu.includes('RTX 3080 Ti') || gpu.includes('RTX 4070 Ti') || gpu.includes('RTX 3070 Ti')) return 4;
+                if (gpu.includes('RTX 4070') || gpu.includes('RTX 3070') || gpu.includes('RTX 4060 Ti') || gpu.includes('RTX 3060 Ti')) return 3;
+                if (gpu.includes('RTX 4060') || gpu.includes('RTX 3060') || gpu.includes('RTX 4050 Ti') || gpu.includes('RTX 3050 Ti') || gpu.includes('MX')) return 2;
+                return 1; // Integrated graphics và các dòng thấp hơn
+            }
+    
+            function calculatePerformanceScore(laptop) {
+                const cpuScore = getCpuPerformanceScore(laptop.cpu);
+                const gpuScore = getGpuPerformanceScore(laptop.gpu);
+                const ramScore = laptop.ram / 8;
+                return (cpuScore + gpuScore + ramScore) / 3;
+            }
+    
+            function populateTable(data) {
+                laptopInfoTableBody.innerHTML = '';
+                data.forEach(laptop => {
+                    const row = laptopInfoTableBody.insertRow();
+                    const typeCell = row.insertCell();
+                    const modelCell = row.insertCell();
+                    const cpuCell = row.insertCell();
+                    const ramCell = row.insertCell();
+                    const gpuCell = row.insertCell();
+    
+                    typeCell.classList.add('text-center', 'fw-bold');
+                    ramCell.classList.add('text-center');
+    
+                    typeCell.textContent = laptop.type;
+                    modelCell.textContent = laptop.model;
+                    cpuCell.textContent = laptop.cpu;
+                    ramCell.textContent = laptop.ram;
+                    gpuCell.textContent = laptop.gpu;
+                });
+            }
+    
+            function updatePerformanceChart(selectedType) {
+                const filteredData = laptopData.filter(laptop => laptop.type === selectedType);
+                const labels = filteredData.map(laptop => laptop.model);
+                const performanceData = filteredData.map(calculatePerformanceScore);
+    
+                if (performanceChartInstance) {
+                    performanceChartInstance.destroy();
+                }
+    
+                const ctx = performanceChartCanvas.getContext('2d');
+                performanceChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Điểm hiệu năng ước tính',
+                            data: performanceData,
+                            backgroundColor: 'rgba(255, 206, 86, 0.7)',
+                            borderColor: 'rgba(255, 206, 86, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Điểm hiệu năng ước tính'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+    
+            function updateContent(selectedType) {
+                const filteredData = laptopData.filter(laptop => laptop.type === selectedType);
+                populateTable(filteredData);
+                updatePerformanceChart(selectedType);
+            }
+    
+            // Khởi tạo với loại mặc định
+            const defaultType = laptopPerformanceFilterTab.value;
+            updateContent(defaultType);
+    
+            // Lắng nghe sự thay đổi của bộ lọc
+            laptopPerformanceFilterTab.addEventListener('change', function () {
+                updateContent(this.value);
+            });
+    
+            // Kích hoạt tab mặc định (Bảng dữ liệu)
+            const tableTab = document.getElementById('table-tab');
+            const bsTab = new bootstrap.Tab(tableTab);
+            bsTab.show();
+        });
+    </script>
+
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <form method="POST" action="{{ url_for('hieunang.hieunang_page') }}" id="alternativeComparisonForm">
+            <div>
+                <h5 class="">Chọn loại laptop để đánh giá theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+                <select class="form-select" id="laptopType" name="selected_laptop_type_id"
+                    onchange="this.form.submit()">
+                    <option value="">-- Chọn loại laptop --</option>
+                    {% for laptop_type in laptop_types %}
+                    <option value="{{ laptop_type.id }}" {% if current_laptop_type_id|string==laptop_type.id|string
+                        %}selected{% endif %}>
+                        {{ laptop_type.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <hr />
+            {% if selected_laptop_type %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for name in alternative_names %}
+                            <th class="text-center align-middle">{{ name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(comparison_matrix|length) %}
+                        <tr>
+                            <th class="align-middle text-center">{{ alternative_names[i] }}</th>
+                            {% for j in range(comparison_matrix|length) %}
+                            <td class="text-center align-middle">
+                                {% if i == j %}
+                                <input type="text" class="form-control form-control-sm bg-warning"
+                                    name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                    value="{{ comparison_matrix[i][j].value }}" readonly disabled>
+                                {% elif j < i %} <input type="text" class="form-control form-control-sm"
+                                    name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                    value="{{ comparison_matrix[i][j].value }}" readonly disabled>
+                                    {% else %}
+                                    <input type="text"
+                                        class="form-control form-control-sm upper-input {% if comparison_matrix[i][j].error %}is-invalid{% endif %}"
+                                        name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                        value="{{ comparison_matrix[i][j].value }}">
+                                    {% if comparison_matrix[i][j].error %}
+                                    <div class="invalid-feedback">{{ comparison_matrix[i][j].error }}</div>
+                                    {% endif %}
+                                    {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-info fw-bold text-white rounded-pill shadow-sm px-4 py-2"
+                    style="font-size: 18.5px;" id="suggestValuesButton">
+                    <i class="fas fa-lightbulb me-2"></i> Đề xuất giá trị
+                </button>
+                <button type="button" class="btn btn-secondary fw-bold rounded-pill shadow-lg px-4 py-2"
+                    style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i> Đặt lại về
+                    1</button>
+                <button type="submit" class="btn btn-primary fw-bold rounded-pill shadow-lg px-4 py-2"
+                    style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i> Tính toán
+                    trọng số</button>
+            </div>
+            <input type="hidden" name="load_suggestions" id="loadSuggestionsInput" value="false">
+            {% else %}
+            <div class="alert alert-warning">Vui lòng chọn loại laptop để đánh giá.</div>
+            {% endif %}
+        </form>
+
+        {% if error %}
+        <div class="alert alert-danger mt-3">{{ error }}</div>
+        {% endif %}
+    </div>
+    {% if weights is not none %}
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Trọng số các phương án theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+        <hr />
+        <div style="height: 100%;">
+            <canvas id="weightsChart"></canvas>
+        </div>
+        <div class="table-responsive d-none">
+            <table class="table table-bordered table-hover" id="hieunang-weights-table">
+                <thead>
+                    <tr>
+                        <th class="text-center bg-primary-subtle">Phương án</th>
+                        <th class="text-center bg-primary-subtle">Trọng số</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alternative, weight in ranked_alternative_weights %}
+                    <tr>
+                        <td><strong>{{ alternative }}</strong></td>
+                        <td class="text-end">
+                            <span class="badge bg-primary rounded-pill" style="font-size: 18.5px;">
+                                {{ (weight * 100)|round(2) }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if cr is not none %}
+        <div class="d-flex justify-content-end">
+            <span class="badge {% if cr < 0.10 %}bg-success{% else %}bg-danger{% endif %} rounded-pill p-3"
+                style="font-size: 19px;">
+                <span>Tỷ số nhất quán (CR):</span>
+                {{ (cr * 100)|round(2) }}%
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const weightsChartCanvas = document.getElementById('weightsChart').getContext('2d');
+        const labels = [{% for alternative, weight in ranked_alternative_weights %}'{{ alternative }}',{% endfor %}];
+        const data = [{% for alternative, weight in ranked_alternative_weights %}{{ (weight * 100)|round(2) }},{% endfor %}];
+
+        const backgroundColors = labels.map((_, index) => {
+            const hue = index * 360 / labels.length;
+            return `hsl(${hue}, 70%, 60%)`;
+        });
+
+        const borderColors = backgroundColors.map(color => color.replace('70%', '80%'));
+
+        const weightsChart = new Chart(weightsChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Trọng số (%)',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Trọng số (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.x !== null) {
+                                    label += context.parsed.x + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+{% endif %}
+</div>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const laptopTypeSelect = document.getElementById('laptopType');
+        const upperInputs = document.querySelectorAll('.upper-input');
+        const resetMatrixToOneButton = document.getElementById('resetMatrixToOne');
+        const calculateButton = document.getElementById('calculateButton');
+        const alternativeComparisonForm = document.getElementById('alternativeComparisonForm');
+        const suggestValuesButton = document.getElementById('suggestValuesButton');
+        const loadSuggestionsInput = document.getElementById('loadSuggestionsInput');
+        const allMatrixInputs = document.querySelectorAll('input[name^="comparison_"]'); // Lấy tất cả input của ma trận
+        const lowerInputs = document.querySelectorAll('input[readonly][name^="comparison_"]'); // Lấy tất cả input readonly của ma trận
+
+        // Hàm cập nhật ô nghịch đảo và kiểm tra giá trị
+        const updateOppositeInput = (input) => {
+            const value = input.value.trim();
+            const [_, altId1, altId2] = input.name.split('_');
+            const oppositeId = `comparison_${altId2}_${altId1}`;
+            const oppositeInput = document.querySelector(`[name="${oppositeId}"]`);
+            let isValid = true;
+            const allowedValues = ["1/9", "1/8", "1/7", "1/6", "1/5", "1/4", "1/3", "1/2", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+            if (oppositeInput) {
+                oppositeInput.value = '';
+                input.classList.remove('is-invalid');
+
+                if (value) {
+                    let calculatedValue;
+                    if (allowedValues.includes(value)) {
+                        if (value.includes('/')) {
+                            const [numStr, denStr] = value.split('/');
+                            const num = parseFloat(numStr);
+                            const den = parseFloat(denStr);
+                            if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                                calculatedValue = (den / num).toString();
+                            } else {
+                                isValid = false;
+                            }
+                        } else {
+                            const numericValue = parseFloat(value);
+                            if (!isNaN(numericValue) && numericValue > 0) {
+                                calculatedValue = (1 / numericValue).toString();
+                            } else {
+                                isValid = false;
+                            }
+                        }
+                    } else {
+                        isValid = false; // Giá trị không nằm trong thang đo cho phép
+                    }
+
+                    if (isValid) {
+                        oppositeInput.value = calculatedValue;
+                    } else {
+                        input.classList.add('is-invalid');
+                    }
+                }
+            }
+            return isValid;
+        };
+
+        const saveMatrixToLocalStorage = () => {
+            const weightsData = {};
+            const weightTableBodyRows = document.querySelectorAll('#hieunang-weights-table tbody tr');
+            if (weightTableBodyRows.length > 0) {
+                weightTableBodyRows.forEach(row => {
+                    const alternativeName = row.querySelector('strong').textContent;
+                    const weightValue = parseFloat(row.querySelector('.badge').textContent.replace('%', '')) / 100;
+                    weightsData[alternativeName] = weightValue;
+                });
+                console.log("Dữ liệu trọng số chuẩn bị lưu:", weightsData);
+                localStorage.setItem('hieunang_alternative_weights', JSON.stringify(weightsData));
+            } else {
+                console.log("Không tìm thấy bảng trọng số để lưu.");
+            }
+        };
+
+        // Tải giá trị ma trận từ Local Storage
+        const loadMatrixFromLocalStorage = () => {
+            const storedMatrix = localStorage.getItem('hieunang_comparison_matrix');
+            if (storedMatrix) {
+                const matrixValues = JSON.parse(storedMatrix);
+                upperInputs.forEach(input => { // Chỉ duyệt qua các ô nửa trên
+                    if (matrixValues.hasOwnProperty(input.name)) {
+                        input.value = matrixValues[input.name];
+                        updateOppositeInput(input); // Gọi hàm cập nhật nghịch đảo
+                    }
+                });
+            }
+        };
+
+        // Tải dữ liệu đã lưu khi trang load
+        loadMatrixFromLocalStorage();
+
+        upperInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                updateOppositeInput(this);
+            });
+        });
+
+        resetMatrixToOneButton.addEventListener('click', function () {
+            upperInputs.forEach(input => {
+                if (!input.readOnly) {
+                    input.value = '1';
+                    input.classList.remove('is-invalid');
+                    const [_, altId1, altId2] = input.name.split('_');
+                    const oppositeId = `comparison_${altId2}_${altId1}`;
+                    const oppositeInput = document.querySelector(`[name="${oppositeId}"]`);
+                    if (oppositeInput) {
+                        oppositeInput.value = '1';
+                    }
+                }
+            });
+            localStorage.removeItem('hieunang_comparison_matrix'); // Xóa dữ liệu đã lưu nếu đặt lại
+        });
+
+        suggestValuesButton.addEventListener('click', function () {
+            loadSuggestionsInput.value = 'true';
+            alternativeComparisonForm.submit();
+        });
+
+        alternativeComparisonForm.addEventListener('submit', function (event) {
+            const hasInvalidInput = Array.from(upperInputs).some(input => input.classList.contains('is-invalid'));
+            if (loadSuggestionsInput.value !== 'true' && hasInvalidInput) {
+                event.preventDefault();
+                alert('Vui lòng nhập giá trị hợp lệ cho tất cả các ô so sánh.');
+            }
+            loadSuggestionsInput.value = 'false'; // Reset sau khi submit
+        });
+
+        // Gọi saveMatrixToLocalStorage khi trang đã tải hoàn toàn, sau khi tính toán
+        window.addEventListener('load', function () {
+            const isCalculating = loadSuggestionsInput.value === 'false' && !Array.from(upperInputs).some(input => input.classList.contains('is-invalid'));
+            if (document.getElementById('hieunang-weights-table') && isCalculating) {
+                saveMatrixToLocalStorage();
+            }
+        });
+
+        // Đảm bảo cập nhật nửa dưới sau khi DOMContentLoaded
+        upperInputs.forEach(input => {
+            updateOppositeInput(input);
+        });
+    });
+</script>
+
+<style>
+    .is-invalid {
+        border-color: red;
+    }
+</style>
+
+{% endblock %}

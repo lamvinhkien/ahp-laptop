@@ -1,0 +1,413 @@
+{% extends 'base.html' %}
+
+{% block title %}
+So sánh tiêu chí
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="py-3 px-4 shadow-lg rounded-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Chọn loại laptop theo nhu cầu trước khi đánh giá</h5>
+        <hr/>
+        <div class="fst-italic" style="font-size: 17px;">
+            - Có 2 nhu cầu chính và phổ biến:
+        </div>
+        <div class="fst-italic" style="font-size: 17px;">
+            + Laptop văn phòng: Mỏng nhẹ, thanh lịch, hiệu năng đủ cho văn phòng, đồ họa tích hợp, pin lâu, giá tốt.
+        </div>
+        <div class="fst-italic" style="font-size: 17px;">
+            + Laptop gaming: Dày nặng, hiệu năng mạnh, tản nhiệt tốt, màn hình tần số quét cao, pin yếu, giá thường cao.
+        </div>
+        <hr/>
+        <select class="form-select form-select-lg" id="laptopType" name="selected_laptop_type_id">
+            <option value="">-- Chọn loại laptop --</option>
+            {% for laptop_type in laptop_types %}
+            <option value="{{ laptop_type.id }}" {% if selected_laptop_type and selected_laptop_type.id|string == laptop_type.id|string %}selected{% endif %}>
+                {{ laptop_type.name }}
+            </option>
+            {% endfor %}
+        </select>
+
+    </div>
+
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Đánh giá các tiêu chí trong việc lựa chọn laptop Acer</h5>
+        <hr/>
+        <div class="fst-italic" style="font-size: 17px;">
+            - Có 7 tiêu chỉ để đánh giá bao gồm: Hiệu năng (CPU, RAM, Card đồ hoạ), Chi phí, Thiết kế (Trọng lượng, Chất
+            Liệu, Độ mỏng), Màn hình (Kích thước, Độ phân giải, Công nghệ màn hình), Thời lượng sử dụng (Pin), Thời gian bảo
+            hành, Dung lượng (Ổ cứng).
+        </div>
+        <hr/>
+        <form method="POST" action="{{ url_for('main.home_page') }}" id="criteriaForm">
+            <input type="hidden" name="selected_laptop_type_id" id="selectedLaptopTypeId" value="{{ selected_laptop_type_id|default('') }}">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for name in criteria_names %}
+                            <th class="text-center align-middle">{{ name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(comparison_matrix|length) %}
+                        <tr>
+                            <th class="align-middle text-center">{{ criteria_names[i] }}</th>
+                            {% for j in range(comparison_matrix|length) %}
+                            <td class="text-center align-middle">
+                                {% if i == j %}
+                                <input type="text" class="form-control form-control-sm bg-warning"
+                                       name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                       value="{{ comparison_matrix[i][j].value }}" readonly disabled>
+                                {% elif j < i %}
+                                <input type="text" class="form-control form-control-sm"
+                                       name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                       value="{{ comparison_matrix[i][j].value }}" readonly disabled>
+                                {% else %}
+                                <input type="text" class="form-control form-control-sm upper-input {% if comparison_matrix[i][j].error %}is-invalid{% endif %}"
+                                       name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                       value="{{ comparison_matrix[i][j].value }}">
+                                {% if comparison_matrix[i][j].error %}
+                                    <div class="invalid-feedback">{{ comparison_matrix[i][j].error }}</div>
+                                {% endif %}
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-secondary fw-bold rounded-pill shadow-lg px-4 py-2"
+                        style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i>Đặt lại về 1</button>
+                <button type="submit" class="btn btn-primary fw-bold rounded-pill shadow-lg px-4 py-2"
+                        style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i>Tính toán trọng số</button>
+            </div>
+        </form>
+    </div>
+
+    {% if weights is not none %}
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Kết quả trọng số các tiêu chí sau khi đánh giá</h5>
+        <hr/>
+        <div class="d-flex">
+            <div class="w-100">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th class="text-center bg-primary-subtle">Tiêu chí</th>
+                                <th class="text-center bg-primary-subtle">Trọng số</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for i in range(weights|length) %}
+                            <tr>
+                                <td><strong>{{ criteria_names[i] }}</strong></td>
+                                <td class="text-end">
+                                    <span class="badge bg-primary rounded-pill" style="font-size: 18.5px;">
+                                        {{ (weights[i] * 100)|round(2) }}%
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div>
+                    {% if cr is not none %}
+                    {% if cr < 0.10 %}
+                    <div class="alert alert-success rounded-pill shadow-sm py-3 px-4" style="font-size: 18px;">
+                        <i class="fas fa-check-circle me-2"></i>Tỷ số nhất quán (CR): <strong>{{ (cr * 100)|round(2) }}%</strong>.
+                        Đánh giá này phù hợp để đưa ra kết luận.
+                    </div>
+                    {% else %}
+                    <div class="alert alert-danger rounded-pill shadow-sm py-3 px-4" style="font-size: 18px;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Tỷ số nhất quán (CR): <strong>{{ (cr * 100)|round(2) }}%</strong>.
+                        Đánh giá này không phù hợp để đưa ra kết luận chính xác.
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="">
+                <div style="width: 460px; height: 460px;">
+                    <canvas id="criteriaPieChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if ranked_alternatives and cr < 0.10 %}
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Xếp hạng các phương án lựa chọn theo loại {% if selected_laptop_type %} {{ selected_laptop_type.name }} {% endif %}</h5>
+        <hr/>
+        <div class="d-flex justify-content-center">
+            <div style="width: 100%; margin: auto;">
+                <canvas id="alternativesPieChart"></canvas>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script type="text/javascript">
+    // Định nghĩa các biến chứa dữ liệu từ Jinja2
+    const appData = {
+        allowedValues: {{ allowed_values|tojson|safe }},
+        weights: {{ weights|default('null')|tojson|safe }},
+        criteriaNames: {{ criteria_names|tojson|safe }},
+        rankedAlternatives: {{ ranked_alternatives|default('[]')|tojson|safe }},
+        cr: {{ cr|default('0')|tojson|safe }}
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const upperInputs = document.querySelectorAll('.upper-input');
+        const laptopTypeSelect = document.getElementById('laptopType');
+        const selectedLaptopTypeIdInput = document.getElementById('selectedLaptopTypeId');
+        const resetMatrixToOneButton = document.getElementById('resetMatrixToOne');
+        const calculateButton = document.getElementById('calculateButton');
+        const storedDataKey = 'ahpFormData';
+
+        // Lấy dữ liệu đã lưu từ Local Storage
+        const storedData = JSON.parse(localStorage.getItem(storedDataKey) || '{}');
+        const comparisonValues = storedData.comparisonValues || {};
+        const selectedLaptopType = storedData.selectedLaptopType;
+
+        // Hàm kiểm tra giá trị input
+        const isInputValueValid = (value) => {
+            if (!value.trim()) {
+                return true; // Cho phép ô trống
+            }
+            return appData.allowedValues.includes(value.trim());
+        };
+
+        // Hàm cập nhật ô nghịch đảo và kiểm tra giá trị
+        const updateOppositeInput = (input) => {
+            const value = input.value.trim();
+            const [_, criteriaId1, criteriaId2] = input.name.split('_');
+            const oppositeId = `comparison_${criteriaId2}_${criteriaId1}`;
+            const oppositeInput = document.querySelector(`[name="${oppositeId}"]`);
+            let isValid = true;
+
+            input.classList.remove('is-invalid'); // Reset trạng thái invalid
+
+            if (oppositeInput) {
+                oppositeInput.value = '';
+
+                if (value) {
+                    if (!isInputValueValid(value)) {
+                        input.classList.add('is-invalid');
+                        isValid = false;
+                    } else {
+                        let calculatedValue;
+                        if (value.includes('/')) {
+                            const [numStr, denStr] = value.split('/');
+                            const num = parseFloat(numStr);
+                            const den = parseFloat(denStr);
+                            if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                                calculatedValue = (den / num).toString();
+                            } else {
+                                isValid = false;
+                                input.classList.add('is-invalid');
+                            }
+                        } else {
+                            const numericValue = parseFloat(value);
+                            if (!isNaN(numericValue) && numericValue > 0) {
+                                calculatedValue = (1 / numericValue).toString();
+                            } else {
+                                isValid = false;
+                                input.classList.add('is-invalid');
+                            }
+                        }
+                        if (isValid) {
+                            oppositeInput.value = calculatedValue;
+                        }
+                    }
+                }
+            }
+            return isValid;
+        };
+
+        // Khôi phục dữ liệu từ Local Storage
+        upperInputs.forEach(input => {
+            if (comparisonValues[input.name]) {
+                input.value = comparisonValues[input.name];
+                updateOppositeInput(input);
+            }
+        });
+
+        if (selectedLaptopType) {
+            laptopTypeSelect.value = selectedLaptopType;
+            selectedLaptopTypeIdInput.value = selectedLaptopType;
+        }
+
+        // Lưu giá trị ma trận vào Local Storage và cập nhật ô nghịch đảo khi input thay đổi
+        upperInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                if (updateOppositeInput(this)) {
+                    storedData.comparisonValues = storedData.comparisonValues || {};
+                    storedData.comparisonValues[this.name] = this.value.trim();
+                    localStorage.setItem(storedDataKey, JSON.stringify(storedData));
+                } else {
+                    if (storedData.comparisonValues && storedData.comparisonValues[this.name]) {
+                        delete storedData.comparisonValues[this.name];
+                        localStorage.setItem(storedDataKey, JSON.stringify(storedData));
+                    }
+                }
+            });
+        });
+
+        // Lưu giá trị loại laptop vào Local Storage và hidden input khi có thay đổi
+        laptopTypeSelect.addEventListener('change', function() {
+            storedData.selectedLaptopType = this.value;
+            localStorage.setItem(storedDataKey, JSON.stringify(storedData));
+            selectedLaptopTypeIdInput.value = this.value;
+        });
+
+        // Xử lý sự kiện click của nút "Đặt lại về 1"
+        resetMatrixToOneButton.addEventListener('click', function() {
+            upperInputs.forEach(input => {
+                if (!input.readOnly) {
+                    input.value = '1';
+                    input.classList.remove('is-invalid');
+                    storedData.comparisonValues = storedData.comparisonValues || {};
+                    storedData.comparisonValues[input.name] = '1';
+                    const [_, criteriaId1, criteriaId2] = input.name.split('_');
+                    const oppositeId = `comparison_${criteriaId2}_${criteriaId1}`;
+                    const oppositeInput = document.querySelector(`[name="${oppositeId}"]`);
+                    if (oppositeInput) {
+                        oppositeInput.value = '1';
+                    }
+                }
+            });
+            localStorage.setItem(storedDataKey, JSON.stringify(storedData));
+        });
+
+        // Xử lý sự kiện click của nút "Tính toán trọng số"
+        calculateButton.addEventListener('click', function(event) {
+            if (!laptopTypeSelect.value) {
+                event.preventDefault();
+                alert('Vui lòng chọn loại laptop trước khi tính toán.');
+                return;
+            }
+
+            const hasInvalidInput = Array.from(upperInputs).some(input => input.classList.contains('is-invalid'));
+            if (hasInvalidInput) {
+                event.preventDefault();
+                alert('Vui lòng nhập giá trị hợp lệ cho tất cả các ô so sánh tiêu chí.');
+            }
+        });
+
+        // Hàm tạo biểu đồ tròn
+        const createPieChart = (canvasId, labels, data, labelText, backgroundColor) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: labelText,
+                        data: data,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.raw.toFixed(2)}%`
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Tạo biểu đồ tròn cho trọng số tiêu chí
+        if (appData.weights !== null) {
+            const backgroundColorsCriteria = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(199, 199, 199, 0.7)'
+            ];
+            createPieChart('criteriaPieChart', appData.criteriaNames, appData.weights.map(w => w * 100), 'Trọng số tiêu chí (%)', backgroundColorsCriteria);
+        }
+
+        // Hàm tạo biểu đồ cột ngang
+        const createBarChart = (canvasId, labels, data, labelText) => {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const totalScore = data.reduce((sum, score) => sum + score, 0);
+
+            // Tạo mảng màu sắc khác nhau cho mỗi cột
+            const backgroundColors = labels.map((_, index) => {
+                // Bạn có thể tùy chỉnh logic chọn màu ở đây
+                const hue = index * 360 / labels.length; // Tạo dải màu hài hòa
+                return `hsl(${hue}, 70%, 60%)`;
+            });
+
+            const borderColors = backgroundColors.map(color => color.replace('70%', '80%')); // Tạo màu viền đậm hơn một chút
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: labelText,
+                        data: data.map(score => (score / totalScore * 100)),
+                        backgroundColor: backgroundColors, // Sử dụng mảng màu sắc
+                        borderColor: borderColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Trọng số (%)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Phương án' }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => `${context.label}: ${context.raw.toFixed(2)}%`
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        // Tạo biểu đồ cột ngang cho trọng số phương án
+        if (appData.rankedAlternatives.length > 0 && parseFloat(appData.cr) < 0.10) {
+            createBarChart('alternativesPieChart', appData.rankedAlternatives.map(item => item.alternative), appData.rankedAlternatives.map(item => item.score), 'Trọng số phương án (%)');
+        }
+    });
+</script>
+
+<style>
+    .is-invalid {
+        border-color: red;
+    }
+</style>
+
+{% endblock %}
