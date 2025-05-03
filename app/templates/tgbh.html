@@ -1,385 +1,498 @@
 {% extends 'base.html' %}
 
 {% block title %}
-Admin
+Đánh giá Thời gian bảo hành
 {% endblock %}
 
 {% block content %}
-<h3 class="mb-3 mt-2 text-center">Ma trận so sánh cặp các phương án theo tiêu chí TGBH</h3>
-<div>
-    <div class="table-responsive text-nowrap">
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th class="fs-4 text-center">TGBH</th>
-                    <th class="text-center text-nowrap">Acer Aspire 3</th>
-                    <th class="text-center text-nowrap">Acer Aspire 5</th>
-                    <th class="text-center text-nowrap">Acer Swift 3</th>
-                    <th class="text-center text-nowrap">Acer Swift X</th>
-                    <th class="text-center text-nowrap">Acer Nitro 5 (15)</th>
-                    <th class="text-center text-nowrap">Acer Nitro 5 (17)</th>
-                    <th class="text-center text-nowrap">Predator Helios 300</th>
-                    <th class="text-center text-nowrap">Predator Triton 300 SE</th>
-                    <th class="text-center text-nowrap">TravelMate P1</th>
-                    <th class="text-center text-nowrap">Chromebook Spin 713</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <th class="align-middle text-nowrap">Acer Aspire 3</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_aspire5"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_swift3"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_swiftx"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_nitro5_15"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_nitro5_17"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_helios"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_travelmate">
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire3_chromebook">
-                    </td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Acer Aspire 5</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="aspire5_aspire3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_swift3"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_swiftx"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_nitro5_15"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_nitro5_17"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_helios"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_travelmate">
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="aspire5_chromebook">
-                    </td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Acer Swift 3</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="swift3_aspire3"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="swift3_aspire5"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_swiftx"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_nitro5_15"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_nitro5_17"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_helios"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_travelmate"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swift3_chromebook"></td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Acer Swift X</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="swiftx_aspire3"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="swiftx_aspire5"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="swiftx_swift3"
-                            readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swiftx_nitro5_15"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swiftx_nitro5_17"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swiftx_helios"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swiftx_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swiftx_travelmate"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="swiftx_chromebook"></td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Acer Nitro 5 (15)</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_15_aspire3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_15_aspire5" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_15_swift3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_15_swiftx" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_15_nitro5_17">
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_15_helios"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_15_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_15_travelmate">
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_15_chromebook">
-                    </td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Acer Nitro 5 (17)</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_17_aspire3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_17_aspire5" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_17_swift3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_17_swiftx" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="nitro5_17_nitro5_15" readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_17_helios"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_17_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_17_travelmate">
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="nitro5_17_chromebook">
-                    </td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Predator Helios 300</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="helios_aspire3"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="helios_aspire5"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="helios_swift3"
-                            readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="helios_swiftx"
-                            readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="helios_nitro5_15" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="helios_nitro5_17" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="helios_triton"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="helios_travelmate"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="helios_chromebook"></td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Predator Triton 300 SE</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="triton_aspire3"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="triton_aspire5"
-                            readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="triton_swift3"
-                            readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="triton_swiftx"
-                            readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="triton_nitro5_15" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="triton_nitro5_17" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center" name="triton_helios"
-                            readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="triton_travelmate"></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="triton_chromebook"></td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">TravelMate P1</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_aspire3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_aspire5" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_swift3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_swiftx" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_nitro5_15" readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_nitro5_17" readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_helios" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="travelmate_triton" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center" name="travelmate_chromebook">
-                    </td>
-                </tr>
-                <tr>
-                    <th class="align-middle text-nowrap">Chromebook Spin 713</th>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_aspire3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_aspire5" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_swift3" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_swiftx" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_nitro5_15" readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_nitro5_17" readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_helios" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_triton" readonly>
-                    </td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input bg-light text-center"
-                            name="chromebook_travelmate" readonly></td>
-                    <td class="text-center"><input type="text"
-                            class="form-control form-control-sm matrix-input text-center bg-warning" value="1" readonly>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<div class="container">
+    <div class="py-3 px-4 shadow-lg rounded-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Dữ liệu tham khảo của các laptop theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+        <div class="mb-3">
+            <select class="form-select" id="laptopPerformanceFilterTab">
+                <option value="Văn phòng">Văn phòng</option>
+                <option value="Gaming">Gaming</option>
+            </select>
+        </div>
+        <hr>
+        <ul class="nav nav-tabs" id="performanceTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="table-tab" data-bs-toggle="tab" data-bs-target="#performanceTable" type="button" role="tab" aria-controls="performanceTable" aria-selected="true">Bảng dữ liệu</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="chart-tab" data-bs-toggle="tab" data-bs-target="#performanceChartTab" type="button" role="tab" aria-controls="performanceChartTab" aria-selected="false">Biểu đồ ước tính</button>
+            </li>
+        </ul>
+        <div class="tab-content mt-3" id="performanceTabsContent">
+            <div class="tab-pane fade show active" id="performanceTable" role="tabpanel" aria-labelledby="table-tab">
+                <div class="table-responsive" style="height: 420px; overflow-y: auto;">
+                    <table class="table table-bordered table-hover" id="laptopInfoTable">
+                        <thead>
+                            <tr class="text-nowrap">
+                                <th class="text-center bg-primary-subtle">Loại</th>
+                                <th class="text-center bg-primary-subtle">Tên Model</th>
+                                <th class="text-center bg-primary-subtle">Thời gian bảo hành (tháng)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="tab-pane fade" id="performanceChartTab" role="tabpanel" aria-labelledby="chart-tab">
+                <div style="height: 420px; width: 100%;" class="d-flex justify-content-center align-items-center">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
     </div>
+    
+    <script>
+       document.addEventListener('DOMContentLoaded', function () {
+        const laptopWarrantyFilterTab = document.getElementById('laptopPerformanceFilterTab'); // Giữ nguyên ID
+        const laptopInfoTableBody = document.getElementById('laptopInfoTable').getElementsByTagName('tbody')[0];
+        const warrantyChartCanvas = document.getElementById('performanceChart'); // Giữ nguyên ID
+        let warrantyChartInstance = null;
+
+        const warrantyData = [
+        { type: 'Văn phòng', model: 'Aspire 5 A515-58-54XJ', warranty: 12 },
+        { type: 'Văn phòng', model: 'Aspire 5 A514 55-374Y', warranty: 12 },
+        { type: 'Văn phòng', model: 'Aspire 3 A315-59-31X8', warranty: 12 },
+        { type: 'Văn phòng', model: 'Swift 3 SF314-513-51HN', warranty: 12 },
+        { type: 'Văn phòng', model: 'Swift Go SFG14 41 R9X4', warranty: 12 },
+        { type: 'Văn phòng', model: 'Aspire 5 Slim A514-54-51MT', warranty: 12 },
+        { type: 'Văn phòng', model: 'Aspire 3 Spin 14 ASP14-31T-313W', warranty: 12 },
+        { type: 'Văn phòng', model: 'Swift X SFX14-51G-51W1', warranty: 12 },
+        { type: 'Văn phòng', model: 'Aspire 7 A715-51G-51CB', warranty: 12 },
+        { type: 'Văn phòng', model: 'Swift 5 SF514-56T-53GX', warranty: 24 },
+        { type: 'Gaming', model: 'Nitro 5 AN515-58', warranty: 12 },
+        { type: 'Gaming', model: 'Nitro 5 AN515-46', warranty: 12 },
+        { type: 'Gaming', model: 'Predator Helios Neo 16 PHN16-71', warranty: 24 },
+        { type: 'Gaming', model: 'Predator Helios 18 PH18-71', warranty: 24 },
+        { type: 'Gaming', model: 'Predator Triton 500 SE PT516-52s', warranty: 24 },
+        { type: 'Gaming', model: 'Predator Triton 300 SE PT314-52s', warranty: 24 },
+        { type: 'Gaming', model: 'Nitro 16 AN16-41', warranty: 12 },
+        { type: 'Gaming', model: 'Predator Helios 300 PH315-55', warranty: 12 },
+        { type: 'Gaming', model: 'Aspire 7 A715-76G', warranty: 12 },
+        { type: 'Gaming', model: 'Predator Triton 300 PT314-51', warranty: 24 },
+        ];
+
+        function getWarrantyScore(warrantyMonths) {
+        // Đánh giá thời gian bảo hành theo thang điểm (ví dụ: 1 - Ngắn, 5 - Dài)
+        if (warrantyMonths < 12) return 1;
+        if (warrantyMonths === 12) return 3;
+        if (warrantyMonths > 12) return 5;
+        }
+
+        function populateTable(data) {
+        laptopInfoTableBody.innerHTML = '';
+        data.forEach(laptop => {
+        const row = laptopInfoTableBody.insertRow();
+        const typeCell = row.insertCell();
+        const modelCell = row.insertCell();
+        const warrantyCell = row.insertCell(); // Chỉ hiển thị loại, model và thời gian bảo hành
+
+        typeCell.classList.add('text-center', 'fw-bold');
+        warrantyCell.classList.add('text-center');
+
+        typeCell.textContent = laptop.type;
+        modelCell.textContent = laptop.model;
+        warrantyCell.textContent = `${laptop.warranty}`;
+        });
+        }
+
+        function updatePerformanceChart(selectedType) {
+        const filteredData = warrantyData.filter(laptop => laptop.type === selectedType);
+        const labels = filteredData.map(laptop => laptop.model);
+        const warrantyScores = filteredData.map(laptop => getWarrantyScore(laptop.warranty));
+
+        if (warrantyChartInstance) {
+        warrantyChartInstance.destroy();
+        }
+
+        const ctx = warrantyChartCanvas.getContext('2d');
+        warrantyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+        labels: labels,
+        datasets: [{
+        label: 'Điểm thời gian bảo hành ước tính',
+        data: warrantyScores,
+        backgroundColor: 'rgba(255, 206, 86, 0.7)',
+        borderColor: 'rgba(255, 206, 86, 1)',
+        borderWidth: 1
+        }]
+        },
+        options: {
+        responsive: true,
+        scales: {
+        y: {
+        beginAtZero: true,
+        ticks: {
+                stepSize: 2,
+                callback: function(value) {
+                if (value === 1) return 'Ngắn';
+                if (value === 3) return 'Tiêu chuẩn';
+                if (value === 5) return 'Dài';
+                return '';
+                }
+        },
+        title: {
+                display: true,
+                text: 'Đánh giá Thời gian bảo hành'
+        }
+        }
+        }
+        }
+        });
+        }
+
+        function updateContent(selectedType) {
+        const filteredData = warrantyData.filter(laptop => laptop.type === selectedType);
+        populateTable(filteredData);
+        updatePerformanceChart(selectedType);
+        }
+
+        const defaultType = laptopWarrantyFilterTab.value;
+        updateContent(defaultType);
+
+        laptopWarrantyFilterTab.addEventListener('change', function () {
+        updateContent(this.value);
+        });
+
+        const tableTab = document.getElementById('table-tab');
+        const bsTab = new bootstrap.Tab(tableTab);
+        bsTab.show();
+        });
+ </script>
+
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <form method="POST" action="{{ url_for('tgbh.tgbh_page') }}" id="alternativeComparisonForm">
+            <div>
+                <h5 class="">Chọn loại laptop để đánh giá theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+                <select class="form-select" id="laptopType" name="selected_laptop_type_id"
+                    onchange="this.form.submit()">
+                    <option value="">-- Chọn loại laptop --</option>
+                    {% for laptop_type in laptop_types %}
+                    <option value="{{ laptop_type.id }}" {% if current_laptop_type_id|string==laptop_type.id|string
+                        %}selected{% endif %}>
+                        {{ laptop_type.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <hr />
+            {% if selected_laptop_type %}
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            {% for name in alternative_names %}
+                            <th class="text-center align-middle">{{ name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for i in range(comparison_matrix|length) %}
+                        <tr>
+                            <th class="align-middle text-center">{{ alternative_names[i] }}</th>
+                            {% for j in range(comparison_matrix|length) %}
+                            <td class="text-center align-middle">
+                                {% if i == j %}
+                                <input type="text" class="form-control form-control-sm bg-warning"
+                                    name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                    value="{{ comparison_matrix[i][j].value }}" readonly disabled>
+                                {% elif j < i %} <input type="text" class="form-control form-control-sm"
+                                    name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                    value="{{ comparison_matrix[i][j].value }}" readonly disabled>
+                                    {% else %}
+                                    <input type="text"
+                                        class="form-control form-control-sm upper-input {% if comparison_matrix[i][j].error %}is-invalid{% endif %}"
+                                        name="{{ comparison_matrix[i][j].id }}" id="input_{{ i }}_{{ j }}"
+                                        value="{{ comparison_matrix[i][j].value }}">
+                                    {% if comparison_matrix[i][j].error %}
+                                    <div class="invalid-feedback">{{ comparison_matrix[i][j].error }}</div>
+                                    {% endif %}
+                                    {% endif %}
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <div class="d-flex justify-content-end gap-2">
+                <button type="button" class="btn btn-info fw-bold text-white rounded-pill shadow-sm px-4 py-2"
+                    style="font-size: 18.5px;" id="suggestValuesButton">
+                    <i class="fas fa-lightbulb me-2"></i> Đề xuất giá trị
+                </button>
+                <button type="button" class="btn btn-secondary fw-bold rounded-pill shadow-lg px-4 py-2"
+                    style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i> Đặt lại về
+                    1</button>
+                <button type="submit" class="btn btn-primary fw-bold rounded-pill shadow-lg px-4 py-2"
+                    style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i> Tính toán
+                    trọng số</button>
+            </div>
+            <input type="hidden" name="load_suggestions" id="loadSuggestionsInput" value="false">
+            {% else %}
+            <div class="alert alert-warning">Vui lòng chọn loại laptop để đánh giá.</div>
+            {% endif %}
+        </form>
+
+        {% if error %}
+        <div class="alert alert-danger mt-3">{{ error }}</div>
+        {% endif %}
+    </div>
+    {% if weights is not none %}
+    <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
+        <h5 class="">Trọng số các phương án theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+        <hr />
+        <div style="height: 100%;">
+            <canvas id="weightsChart"></canvas>
+        </div>
+        <div class="table-responsive d-none">
+            <table class="table table-bordered table-hover" id="tgbh-weights-table">
+                <thead>
+                    <tr>
+                        <th class="text-center bg-primary-subtle">Phương án</th>
+                        <th class="text-center bg-primary-subtle">Trọng số</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for alternative, weight in ranked_alternative_weights %}
+                    <tr>
+                        <td><strong>{{ alternative }}</strong></td>
+                        <td class="text-end">
+                            <span class="badge bg-primary rounded-pill" style="font-size: 18.5px;">
+                                {{ (weight * 100)|round(2) }}%
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% if cr is not none %}
+        <div class="d-flex justify-content-end">
+            <span class="badge {% if cr < 0.10 %}bg-success{% else %}bg-danger{% endif %} rounded-pill p-3"
+                style="font-size: 19px;">
+                <span>Tỷ số nhất quán (CR):</span>
+                {{ (cr * 100)|round(2) }}%
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const weightsChartCanvas = document.getElementById('weightsChart').getContext('2d');
+        const labels = [{% for alternative, weight in ranked_alternative_weights %}'{{ alternative }}',{% endfor %}];
+        const data = [{% for alternative, weight in ranked_alternative_weights %}{{ (weight * 100)|round(2) }},{% endfor %}];
+
+        const backgroundColors = labels.map((_, index) => {
+            const hue = index * 360 / labels.length;
+            return `hsl(${hue}, 70%, 60%)`;
+        });
+
+        const borderColors = backgroundColors.map(color => color.replace('70%', '80%'));
+
+        const weightsChart = new Chart(weightsChartCanvas, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Trọng số (%)',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Trọng số (%)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.x !== null) {
+                                    label += context.parsed.x + '%';
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+{% endif %}
 </div>
-<div class="mt-3">
-        <button class="btn btn-primary">Tính toán trọng số</button>
-</div>
-<hr>
-<h3 class="mb-3 text-center">Bảng dữ liệu tham khảo thời gian bảo hành của các laptop</h3>
-<div class="table-responsive">
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                {% for key in laptops[0].keys() %}
-                <th class="text-nowrap">{{ key }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for laptop in laptops %}
-            <tr>
-                {% for value in laptop.values() %}
-                <td class="text-nowrap">{{ value }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+
+<script type="text/javascript">
+    document.addEventListener('DOMContentLoaded', function () {
+        const laptopTypeSelect = document.getElementById('laptopType');
+        const upperInputs = document.querySelectorAll('.upper-input');
+        const resetMatrixToOneButton = document.getElementById('resetMatrixToOne');
+        const calculateButton = document.getElementById('calculateButton');
+        const alternativeComparisonForm = document.getElementById('alternativeComparisonForm');
+        const suggestValuesButton = document.getElementById('suggestValuesButton');
+        const loadSuggestionsInput = document.getElementById('loadSuggestionsInput');
+        const allMatrixInputs = document.querySelectorAll('input[name^="comparison_"]'); // Lấy tất cả input của ma trận
+        const lowerInputs = document.querySelectorAll('input[readonly][name^="comparison_"]'); // Lấy tất cả input readonly của ma trận
+
+        // Hàm cập nhật ô nghịch đảo và kiểm tra giá trị
+        const updateOppositeInput = (input) => {
+            const value = input.value.trim();
+            const [_, altId1, altId2] = input.name.split('_');
+            const oppositeId = `comparison_${altId2}_${altId1}`;
+            const oppositeInput = document.querySelector(`[name="${oppositeId}"]`);
+            let isValid = true;
+            const allowedValues = ["1/9", "1/8", "1/7", "1/6", "1/5", "1/4", "1/3", "1/2", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+            if (oppositeInput) {
+                oppositeInput.value = '';
+                input.classList.remove('is-invalid');
+
+                if (value) {
+                    let calculatedValue;
+                    if (allowedValues.includes(value)) {
+                        if (value.includes('/')) {
+                            const [numStr, denStr] = value.split('/');
+                            const num = parseFloat(numStr);
+                            const den = parseFloat(denStr);
+                            if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                                calculatedValue = (den / num).toString();
+                            } else {
+                                isValid = false;
+                            }
+                        } else {
+                            const numericValue = parseFloat(value);
+                            if (!isNaN(numericValue) && numericValue > 0) {
+                                calculatedValue = (1 / numericValue).toString();
+                            } else {
+                                isValid = false;
+                            }
+                        }
+                    } else {
+                        isValid = false; // Giá trị không nằm trong thang đo cho phép
+                    }
+
+                    if (isValid) {
+                        oppositeInput.value = calculatedValue;
+                    } else {
+                        input.classList.add('is-invalid');
+                    }
+                }
+            }
+            return isValid;
+        };
+
+        const saveMatrixToLocalStorage = () => {
+            const weightsData = {};
+            const weightTableBodyRows = document.querySelectorAll('#tgbh-weights-table tbody tr');
+            if (weightTableBodyRows.length > 0) {
+                weightTableBodyRows.forEach(row => {
+                    const alternativeName = row.querySelector('strong').textContent;
+                    const weightValue = parseFloat(row.querySelector('.badge').textContent.replace('%', '')) / 100;
+                    weightsData[alternativeName] = weightValue;
+                });
+                console.log("Dữ liệu trọng số chuẩn bị lưu:", weightsData);
+                localStorage.setItem('tgbh_alternative_weights', JSON.stringify(weightsData));
+            } else {
+                console.log("Không tìm thấy bảng trọng số để lưu.");
+            }
+        };
+
+        // Tải giá trị ma trận từ Local Storage
+        const loadMatrixFromLocalStorage = () => {
+            const storedMatrix = localStorage.getItem('tgbh_comparison_matrix');
+            if (storedMatrix) {
+                const matrixValues = JSON.parse(storedMatrix);
+                upperInputs.forEach(input => { // Chỉ duyệt qua các ô nửa trên
+                    if (matrixValues.hasOwnProperty(input.name)) {
+                        input.value = matrixValues[input.name];
+                        updateOppositeInput(input); // Gọi hàm cập nhật nghịch đảo
+                    }
+                });
+            }
+        };
+
+        // Tải dữ liệu đã lưu khi trang load
+        loadMatrixFromLocalStorage();
+
+        upperInputs.forEach(input => {
+            input.addEventListener('input', function () {
+                updateOppositeInput(this);
+            });
+        });
+
+        resetMatrixToOneButton.addEventListener('click', function () {
+            upperInputs.forEach(input => {
+                if (!input.readOnly) {
+                    input.value = '1';
+                    input.classList.remove('is-invalid');
+                    const [_, altId1, altId2] = input.name.split('_');
+                    const oppositeId = `comparison_${altId2}_${altId1}`;
+                    const oppositeInput = document.querySelector(`[name="${oppositeId}"]`);
+                    if (oppositeInput) {
+                        oppositeInput.value = '1';
+                    }
+                }
+            });
+            localStorage.removeItem('tgbh_comparison_matrix'); // Xóa dữ liệu đã lưu nếu đặt lại
+        });
+
+        suggestValuesButton.addEventListener('click', function () {
+            loadSuggestionsInput.value = 'true';
+            alternativeComparisonForm.submit();
+        });
+
+        alternativeComparisonForm.addEventListener('submit', function (event) {
+            const hasInvalidInput = Array.from(upperInputs).some(input => input.classList.contains('is-invalid'));
+            if (loadSuggestionsInput.value !== 'true' && hasInvalidInput) {
+                event.preventDefault();
+                alert('Vui lòng nhập giá trị hợp lệ cho tất cả các ô so sánh.');
+            }
+            loadSuggestionsInput.value = 'false'; // Reset sau khi submit
+        });
+
+        // Gọi saveMatrixToLocalStorage khi trang đã tải hoàn toàn, sau khi tính toán
+        window.addEventListener('load', function () {
+            const isCalculating = loadSuggestionsInput.value === 'false' && !Array.from(upperInputs).some(input => input.classList.contains('is-invalid'));
+            if (document.getElementById('tgbh-weights-table') && isCalculating) {
+                saveMatrixToLocalStorage();
+            }
+        });
+
+        // Đảm bảo cập nhật nửa dưới sau khi DOMContentLoaded
+        upperInputs.forEach(input => {
+            updateOppositeInput(input);
+        });
+    });
+</script>
+
+<style>
+    .is-invalid {
+        border-color: red;
+    }
+</style>
+
 {% endblock %}
