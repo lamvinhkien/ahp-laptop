@@ -66,35 +66,6 @@ def generate_comparison_matrix_data(criteria, submitted_values=None, input_error
     return comparison_matrix_data
 
 
-def calculate_final_scores(criteria, alternatives, weights, selected_laptop_type_id):
-    option_weight_matrices = {}
-    for criterion in criteria:
-        option_weight_matrix = np.zeros((len(alternatives), len(alternatives)))
-        for i, alternative1 in enumerate(alternatives):
-            for j, alternative2 in enumerate(alternatives):
-                if i == j:
-                    option_weight_matrix[i, j] = 1.0
-                else:
-                    comparison = AlternativeComparison.query.filter(AlternativeComparison.alternative1_id == alternative1.id, AlternativeComparison.alternative2_id == alternative2.id, AlternativeComparison.criteria_id == criterion.id, AlternativeComparison.laptop_type_id == selected_laptop_type_id).first()
-                    if comparison:
-                        option_weight_matrix[i, j] = comparison.preference_value
-                    else:
-                        comparison = AlternativeComparison.query.filter(AlternativeComparison.alternative1_id == alternative2.id, AlternativeComparison.alternative2_id == alternative1.id, AlternativeComparison.criteria_id == criterion.id, AlternativeComparison.laptop_type_id == selected_laptop_type_id).first()
-                        option_weight_matrix[i, j] = 1 / comparison.preference_value if comparison else 1.0
-        option_weight_matrices[criterion.id] = calculate_ahp_weights(option_weight_matrix, [a.name for a in alternatives])[0]
-
-    final_scores = np.zeros(len(alternatives))
-    for i, alternative in enumerate(alternatives):
-        for j, criterion in enumerate(criteria):
-            final_scores[i] += weights[j] * option_weight_matrices[criterion.id][i]
-    return final_scores
-
-
-def get_best_option(alternatives, final_scores):
-    best_option_index = np.argmax(final_scores)
-    return alternatives[best_option_index]
-
-
 @main_bp.route("/", methods=["GET", "POST"])
 def home_page():
     criteria = Criteria.query.all()
@@ -105,7 +76,7 @@ def home_page():
     error = None
     submitted_values = session.get('criteria_comparison_values', {})
     input_errors = {}
-    ranked_alternatives = session.get('ranked_alternatives', [])
+    ranked_alternatives = []
     selected_laptop_type_id = request.form.get('selected_laptop_type_id') or session.get('selected_laptop_type_id')
     selected_laptop_type = LaptopType.query.get(selected_laptop_type_id) if selected_laptop_type_id else None
 
@@ -157,12 +128,6 @@ def home_page():
                 session['cr'] = cr
                 if cr >= 0.10:
                     error = "Tỷ số nhất quán (CR) vượt quá 10%. Vui lòng xem xét lại các đánh giá của bạn."
-                elif weights is not None and alternatives:
-                    final_scores = calculate_final_scores(criteria, alternatives, weights, selected_laptop_type_id)
-                    ranked_alternatives = sorted([{"alternative": alt.name, "score": score} for alt, score in zip(alternatives, final_scores)], key=lambda x: x["score"], reverse=True)
-                    session['ranked_alternatives'] = ranked_alternatives
-            else:
-                error = "Vui lòng sửa các lỗi nhập liệu."
 
         comparison_matrix_data = generate_comparison_matrix_data(criteria, submitted_values_from_form, input_errors)
 

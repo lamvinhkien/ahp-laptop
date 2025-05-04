@@ -19,19 +19,20 @@ So sánh tiêu chí
             + Laptop gaming: Dày nặng, hiệu năng mạnh, tản nhiệt tốt, màn hình tần số quét cao, pin yếu, giá thường cao.
         </div>
         <hr/>
-        <select class="form-select form-select-lg" id="laptopType" name="selected_laptop_type_id">
-            <option value="">-- Chọn loại laptop --</option>
-            {% for laptop_type in laptop_types %}
-            <option value="{{ laptop_type.id }}" {% if selected_laptop_type and selected_laptop_type.id|string == laptop_type.id|string %}selected{% endif %}>
-                {{ laptop_type.name }}
-            </option>
-            {% endfor %}
-        </select>
-
+        <form method="POST" action="{{ url_for('main.home_page') }}">
+            <select class="form-select form-select-lg" id="laptopType" name="selected_laptop_type_id" onchange="this.form.submit()">
+                <option value="">-- Chọn loại laptop --</option>
+                {% for laptop_type in laptop_types %}
+                <option value="{{ laptop_type.id }}" {% if selected_laptop_type and selected_laptop_type.id|string == laptop_type.id|string %}selected{% endif %}>
+                    {{ laptop_type.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
     </div>
 
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
-        <h5 class="">Đánh giá các tiêu chí trong việc lựa chọn laptop Acer</h5>
+        <h5 class="">Đánh giá các tiêu chí trong việc lựa chọn laptop {% if selected_laptop_type %} {{ selected_laptop_type.name }} {% else %} Acer {% endif %}</h5>
         <hr/>
         <div class="fst-italic" style="font-size: 17px;">
             - Có 7 tiêu chỉ để đánh giá bao gồm: Hiệu năng (CPU, RAM, Card đồ hoạ), Chi phí, Thiết kế (Trọng lượng, Chất
@@ -142,17 +143,21 @@ So sánh tiêu chí
     </div>
     {% endif %}
 
-    {% if ranked_alternatives and cr < 0.10 %}
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
         <h5 class="">Xếp hạng các phương án lựa chọn theo loại {% if selected_laptop_type %} {{ selected_laptop_type.name }} {% endif %}</h5>
         <hr/>
         <div class="d-flex justify-content-center">
-            <div style="width: 100%; margin: auto;">
-                <canvas id="alternativesPieChart"></canvas>
+            <div style="width: 100%;">
+                <div class="d-flex justify-content-center">
+                    <div id="alternativeMismatchWarning" class="alert alert-danger" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Vui lòng kiểm tra lại đánh giá các ma trận so sánh cặp các phương án theo từng tiêu chí.
+                    </div>
+                </div>
+                <canvas id="alternativesBarChart"></canvas>
             </div>
         </div>
     </div>
-    {% endif %}
 </div>
 
 <script type="text/javascript">
@@ -161,7 +166,6 @@ So sánh tiêu chí
         allowedValues: {{ allowed_values|tojson|safe }},
         weights: {{ weights|default('null')|tojson|safe }},
         criteriaNames: {{ criteria_names|tojson|safe }},
-        rankedAlternatives: {{ ranked_alternatives|default('[]')|tojson|safe }},
         cr: {{ cr|default('0')|tojson|safe }}
     };
 
@@ -172,6 +176,7 @@ So sánh tiêu chí
         const resetMatrixToOneButton = document.getElementById('resetMatrixToOne');
         const calculateButton = document.getElementById('calculateButton');
         const storedDataKey = 'ahpFormData';
+        const alternativeMismatchWarning = document.getElementById('alternativeMismatchWarning');
 
         // Lấy dữ liệu đã lưu từ Local Storage
         const storedData = JSON.parse(localStorage.getItem(storedDataKey) || '{}');
@@ -286,6 +291,12 @@ So sánh tiêu chí
                 }
             });
             localStorage.setItem(storedDataKey, JSON.stringify(storedData));
+            appData.criteriaNames.forEach(criteriaName => {
+                localStorage.removeItem(`${convertCriteriaName(criteriaName)}_alternative_weights`);
+            });
+            if (alternativeMismatchWarning) {
+                alternativeMismatchWarning.style.display = 'none'; // Ẩn cảnh báo nếu có
+            }
         });
 
         // Xử lý sự kiện click của nút "Tính toán trọng số"
@@ -300,6 +311,11 @@ So sánh tiêu chí
             if (hasInvalidInput) {
                 event.preventDefault();
                 alert('Vui lòng nhập giá trị hợp lệ cho tất cả các ô so sánh tiêu chí.');
+            } else {
+                // Sau khi tính toán trọng số tiêu chí thành công, có thể ẩn cảnh báo (nếu đang hiển thị)
+                if (alternativeMismatchWarning) {
+                    alternativeMismatchWarning.style.display = 'none';
+                }
             }
         });
 
@@ -347,29 +363,108 @@ So sánh tiêu chí
             createPieChart('criteriaPieChart', appData.criteriaNames, appData.weights.map(w => w * 100), 'Trọng số tiêu chí (%)', backgroundColorsCriteria);
         }
 
-        // Hàm tạo biểu đồ cột ngang
-        const createBarChart = (canvasId, labels, data, labelText) => {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            const totalScore = data.reduce((sum, score) => sum + score, 0);
+        const convertCriteriaName = (name) => {
+            if(name === "Hiệu năng") return "hieunang";
+            if(name === "Chi phí") return "chiphi";
+            if(name === "Thiết kế") return "thietke";
+            if(name === "Màn hình") return "manhinh";
+            if(name === "Thời lượng sử dụng") return "tlsd";
+            if(name === "Thời gian bảo hành") return "tgbh";
+            if(name === "Dung lượng") return "dungluong";
+            return name;
+        };
 
-            // Tạo mảng màu sắc khác nhau cho mỗi cột
-            const backgroundColors = labels.map((_, index) => {
-                // Bạn có thể tùy chỉnh logic chọn màu ở đây
-                const hue = index * 360 / labels.length; // Tạo dải màu hài hòa
-                return `hsl(${hue}, 70%, 60%)`;
+        // Hàm để lấy trọng số phương án từ Local Storage và kiểm tra sự đồng nhất
+        const getAlternativeWeightsFromLocalStorage = () => {
+            const alternativeWeights = {};
+            let firstAlternatives = null;
+            let mismatch = false;
+
+            appData.criteriaNames.forEach(criteriaName => {
+                const convertedName = convertCriteriaName(criteriaName);
+                const weightsStr = localStorage.getItem(`${convertedName}_alternative_weights`);
+                if (weightsStr) {
+                    const weights = JSON.parse(weightsStr);
+                    alternativeWeights[convertedName] = weights;
+                    const currentAlternatives = Object.keys(weights).sort();
+
+                    if (firstAlternatives === null) {
+                        firstAlternatives = currentAlternatives;
+                    } else if (currentAlternatives.length !== firstAlternatives.length || !currentAlternatives.every((value, index) => value === firstAlternatives[index])) {
+                        mismatch = true;
+                    }
+                    console.log(`🚀 ~ check (${convertedName}): `, weights);
+                } else {
+                    mismatch = true; // Nếu một tiêu chí không có dữ liệu đánh giá phương án
+                }
             });
 
-            const borderColors = backgroundColors.map(color => color.replace('70%', '80%')); // Tạo màu viền đậm hơn một chút
+            if (mismatch && alternativeMismatchWarning) {
+                alternativeMismatchWarning.style.display = 'block';
+                return {}; // Trả về một đối tượng rỗng để ngăn tính toán xếp hạng
+            } else if (alternativeMismatchWarning) {
+                alternativeMismatchWarning.style.display = 'none';
+            }
 
+            return alternativeWeights;
+        };
+
+        // Hàm tính toán điểm số cuối cùng cho các phương án
+        const calculateFinalScores = (criteriaWeights, alternativeWeights) => {
+            const finalScores = {};
+            const firstCriteriaWeights = alternativeWeights[convertCriteriaName(appData.criteriaNames[0])];
+            if (firstCriteriaWeights && Object.keys(alternativeWeights).length === appData.criteriaNames.length) {
+                const alternatives = Object.keys(firstCriteriaWeights);
+                alternatives.forEach(alternative => {
+                    let score = 0;
+                    for (let i = 0; i < appData.criteriaNames.length; i++) {
+                        const criteriaName = appData.criteriaNames[i];
+                        const convertedCriteriaName = convertCriteriaName(criteriaName);
+                        const criteriaWeight = criteriaWeights[i];
+                        const weightForAlternative = alternativeWeights[convertedCriteriaName]?.[alternative] || 0;
+                        score += criteriaWeight * weightForAlternative;
+                    }
+                    finalScores[alternative] = score;
+                });
+            }
+            return finalScores;
+        };
+
+        // Hàm sắp xếp các phương án theo điểm số
+        const rankAlternatives = (finalScores) => {
+            return Object.entries(finalScores)
+                .sort(([, scoreA], [, scoreB]) => scoreB - scoreA)
+                .map(([alternative, score]) => ({ alternative, score }));
+        };
+
+        // Hàm tạo biểu đồ cột ngang cho xếp hạng phương án với nhiều màu
+        const createAlternativesBarChart = (rankedAlternatives) => {
+            const labels = rankedAlternatives.map(item => item.alternative);
+            const data = rankedAlternatives.map(item => item.score * 100); // Nhân với 100 để hiển thị phần trăm
+            const backgroundColors = [
+                'rgba(255, 99, 132, 0.7)',
+                'rgba(54, 162, 235, 0.7)',
+                'rgba(255, 206, 86, 0.7)',
+                'rgba(75, 192, 192, 0.7)',
+                'rgba(153, 102, 255, 0.7)',
+                'rgba(255, 159, 64, 0.7)',
+                'rgba(173, 216, 230, 0.7)', // Light Blue
+                'rgba(144, 238, 144, 0.7)', // Light Green
+                'rgba(255, 182, 193, 0.7)', // Light Pink
+                'rgba(190, 190, 190, 0.7)'  // Light Gray
+                // Thêm các màu khác nếu bạn có nhiều phương án hơn
+            ];
+
+            const ctx = document.getElementById('alternativesBarChart').getContext('2d');
             new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: labelText,
-                        data: data.map(score => (score / totalScore * 100)),
-                        backgroundColor: backgroundColors, // Sử dụng mảng màu sắc
-                        borderColor: borderColors,
+                        label: 'Điểm số tổng thể (%)',
+                        data: data,
+                        backgroundColor: backgroundColors.slice(0, labels.length), // Lấy số lượng màu tương ứng
+                        borderColor: backgroundColors.slice(0, labels.length).map(color => color.replace('0.7', '1')), // Màu viền đậm hơn
                         borderWidth: 1
                     }]
                 },
@@ -379,7 +474,7 @@ So sánh tiêu chí
                     scales: {
                         x: {
                             beginAtZero: true,
-                            title: { display: true, text: 'Trọng số (%)' }
+                            title: { display: true, text: 'Điểm số tổng thể (%)' }
                         },
                         y: {
                             title: { display: true, text: 'Phương án' }
@@ -397,9 +492,14 @@ So sánh tiêu chí
             });
         };
 
-        // Tạo biểu đồ cột ngang cho trọng số phương án
-        if (appData.rankedAlternatives.length > 0 && parseFloat(appData.cr) < 0.10) {
-            createBarChart('alternativesPieChart', appData.rankedAlternatives.map(item => item.alternative), appData.rankedAlternatives.map(item => item.score), 'Trọng số phương án (%)');
+        // Tính toán và hiển thị xếp hạng phương án nếu có trọng số tiêu chí và CR hợp lệ
+        if (appData.weights !== null && parseFloat(appData.cr) < 0.10) {
+            const alternativeWeights = getAlternativeWeightsFromLocalStorage();
+            if (Object.keys(alternativeWeights).length === appData.criteriaNames.length && Object.keys(alternativeWeights).every(key => Object.keys(alternativeWeights[key]).length > 0)) {
+                const finalScores = calculateFinalScores(appData.weights, alternativeWeights);
+                const rankedAlternatives = rankAlternatives(finalScores);
+                createAlternativesBarChart(rankedAlternatives);
+            }
         }
     });
 </script>
