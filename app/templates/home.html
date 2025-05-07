@@ -84,11 +84,11 @@ So sánh tiêu chí
             <div class="row justify-content-end">
                 <div class="col-lg-3 col-12">
                     <button type="button" class="btn btn-secondary fw-bold rounded-pill shadow-lg px-2 py-2 w-100"
-                    style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i>Đặt lại về 1</button>
+                            style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i>Đặt lại về 1</button>
                 </div>
                 <div class="col-lg-4 col-12">
                     <button type="submit" class="btn btn-primary fw-bold rounded-pill shadow-lg px-2 py-2 w-100 mt-lg-0 mt-2"
-                    style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i>Tính toán trọng số</button>
+                            style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i>Tính toán trọng số</button>
                 </div>
             </div>
         </form>
@@ -165,7 +165,7 @@ So sánh tiêu chí
         </div>
         <div class="row justify-content-lg-end">
             <div class="col-lg-3 col-12">
-                <button class="btn btn-lg btn-success w-100 rounded-pill px-2 py-2"><i class="fa-solid fa-download me-2 mt-1"></i>Xuất kết quả</button>
+                <a href="{{ url_for('main.export_pdf') }}" class="btn btn-lg btn-success w-100 rounded-pill px-2 py-2" id="exportResult"><i class="fa-solid fa-download me-2 mt-1"></i>Xuất kết quả</a>
             </div>
         </div>
     </div>
@@ -363,7 +363,7 @@ So sánh tiêu chí
         // Tạo biểu đồ tròn cho trọng số tiêu chí
         if (appData.weights !== null) {
             const backgroundColorsCriteria = [
-                'rgba(255, 99, 132, 0.7)',
+                'rgba(255,99, 132, 0.7)',
                 'rgba(54, 162, 235, 0.7)',
                 'rgba(255, 206, 86, 0.7)',
                 'rgba(75, 192, 192, 0.7)',
@@ -462,7 +462,7 @@ So sánh tiêu chí
                 'rgba(173, 216, 230, 0.7)', // Light Blue
                 'rgba(144, 238, 144, 0.7)', // Light Green
                 'rgba(255, 182, 193, 0.7)', // Light Pink
-                'rgba(190, 190, 190, 0.7)'  // Light Gray
+                'rgba(190, 190, 190, 0.7)'   // Light Gray
                 // Thêm các màu khác nếu bạn có nhiều phương án hơn
             ];
 
@@ -505,12 +505,23 @@ So sánh tiêu chí
 
         // Tính toán và hiển thị xếp hạng phương án nếu có trọng số tiêu chí và CR hợp lệ
         if (appData.weights !== null && parseFloat(appData.cr) < 0.10) {
-            const alternativeWeights = getAlternativeWeightsFromLocalStorage();
-            if (Object.keys(alternativeWeights).length === appData.criteriaNames.length && Object.keys(alternativeWeights).every(key => Object.keys(alternativeWeights[key]).length > 0)) {
-                const finalScores = calculateFinalScores(appData.weights, alternativeWeights);
-                const rankedAlternatives = rankAlternatives(finalScores);
-                createAlternativesBarChart(rankedAlternatives);
-            }
+                const alternativeWeights = getAlternativeWeightsFromLocalStorage();
+                let rankedAlternatives = []; // Khởi tạo biến ngoài scope if
+
+                if (Object.keys(alternativeWeights).length === appData.criteriaNames.length && Object.keys(alternativeWeights).every(key => Object.keys(alternativeWeights[key]).length > 0)) {
+                    const finalScores = calculateFinalScores(appData.weights, alternativeWeights);
+                    rankedAlternatives = rankAlternatives(finalScores);
+                    createAlternativesBarChart(rankedAlternatives);
+                }
+
+                // Lưu ranked_alternatives vào session để xuất PDF (luôn gọi khi có trọng số và CR hợp lệ)
+                fetch('/update_session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ ranked_alternatives: rankedAlternatives })
+                });
         }
     });
 </script>
