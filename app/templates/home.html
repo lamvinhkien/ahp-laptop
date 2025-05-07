@@ -5,7 +5,7 @@ So sánh tiêu chí
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-lg">
     <div class="py-3 px-4 shadow-lg rounded-4" style="background-color: rgb(250, 250, 250);">
         <h5 class="">Chọn loại laptop theo nhu cầu trước khi đánh giá</h5>
         <hr/>
@@ -20,7 +20,7 @@ So sánh tiêu chí
         </div>
         <hr/>
         <form method="POST" action="{{ url_for('main.home_page') }}">
-            <select class="form-select form-select-lg" id="laptopType" name="selected_laptop_type_id" onchange="this.form.submit()">
+            <select class="form-select" id="laptopType" name="selected_laptop_type_id" onchange="this.form.submit()">
                 <option value="">-- Chọn loại laptop --</option>
                 {% for laptop_type in laptop_types %}
                 <option value="{{ laptop_type.id }}" {% if selected_laptop_type and selected_laptop_type.id|string == laptop_type.id|string %}selected{% endif %}>
@@ -81,11 +81,15 @@ So sánh tiêu chí
                     </tbody>
                 </table>
             </div>
-            <div class="d-flex justify-content-end gap-2">
-                <button type="button" class="btn btn-secondary fw-bold rounded-pill shadow-lg px-4 py-2"
-                        style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i>Đặt lại về 1</button>
-                <button type="submit" class="btn btn-primary fw-bold rounded-pill shadow-lg px-4 py-2"
-                        style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i>Tính toán trọng số</button>
+            <div class="row justify-content-end">
+                <div class="col-lg-3 col-12">
+                    <button type="button" class="btn btn-secondary fw-bold rounded-pill shadow-lg px-2 py-2 w-100"
+                    style="font-size: 18.5px;" id="resetMatrixToOne"><i class="fas fa-redo me-2"></i>Đặt lại về 1</button>
+                </div>
+                <div class="col-lg-4 col-12">
+                    <button type="submit" class="btn btn-primary fw-bold rounded-pill shadow-lg px-2 py-2 w-100 mt-lg-0 mt-2"
+                    style="font-size: 18.5px;" id="calculateButton"><i class="fas fa-calculator me-2"></i>Tính toán trọng số</button>
+                </div>
             </div>
         </form>
     </div>
@@ -94,8 +98,8 @@ So sánh tiêu chí
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
         <h5 class="">Kết quả trọng số các tiêu chí sau khi đánh giá</h5>
         <hr/>
-        <div class="d-flex">
-            <div class="w-100">
+        <div class="row">
+            <div class="col-lg-6 col-12">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover">
                         <thead>
@@ -134,8 +138,8 @@ So sánh tiêu chí
                     {% endif %}
                 </div>
             </div>
-            <div class="">
-                <div style="width: 460px; height: 460px;">
+            <div class="col-lg-6 col-12">
+                <div class="d-flex justify-content-center" style="width: 100%; height: 100%;">
                     <canvas id="criteriaPieChart"></canvas>
                 </div>
             </div>
@@ -147,14 +151,21 @@ So sánh tiêu chí
         <h5 class="">Xếp hạng các phương án lựa chọn theo loại {% if selected_laptop_type %} {{ selected_laptop_type.name }} {% endif %}</h5>
         <hr/>
         <div class="d-flex justify-content-center">
-            <div style="width: 100%;">
+            <div style="width: 100%; height: 100%;">
                 <div class="d-flex justify-content-center">
                     <div id="alternativeMismatchWarning" class="alert alert-danger" style="display: none;">
                         <i class="fas fa-exclamation-triangle me-2"></i>
                         Vui lòng kiểm tra lại đánh giá các ma trận so sánh cặp các phương án theo từng tiêu chí.
                     </div>
                 </div>
-                <canvas id="alternativesBarChart"></canvas>
+                <div class="d-flex justify-content-center">
+                    <canvas id="alternativesBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-lg-end">
+            <div class="col-lg-3 col-12">
+                <button class="btn btn-lg btn-success w-100 rounded-pill px-2 py-2"><i class="fa-solid fa-download me-2 mt-1"></i>Xuất kết quả</button>
             </div>
         </div>
     </div>
