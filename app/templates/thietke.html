@@ -5,9 +5,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="container">
     <div class="py-3 px-4 shadow-lg rounded-4" style="background-color: rgb(250, 250, 250);">
-        <h5 class="">Dữ liệu tham khảo của các laptop theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+        <h5 class="">Dữ liệu tham khảo của các laptop theo tiêu chí <strong class="text-warning">{{ criteria_name }}</strong></h5>
         <div class="mb-3">
             <select class="form-select" id="laptopPerformanceFilterTab">
                 <option value="Văn phòng">Văn phòng</option>
@@ -25,15 +24,15 @@
         </ul>
         <div class="tab-content mt-3" id="performanceTabsContent">
             <div class="tab-pane fade show active" id="performanceTable" role="tabpanel" aria-labelledby="table-tab">
-                <div class="table-responsive" style="height: 420px; overflow-y: auto;">
+                <div class="table-responsive" style="height: 300px; overflow-y: auto;">
                     <table class="table table-bordered table-hover" id="laptopInfoTable">
                         <thead>
                             <tr class="text-nowrap">
-                                <th class="text-center bg-primary-subtle">Loại</th>
-                                <th class="text-center bg-primary-subtle">Tên Model</th>
-                                <th class="text-center bg-primary-subtle">Trọng lượng (Kg)</th>
-                                <th class="text-center bg-primary-subtle">Chất liệu</th>
-                                <th class="text-center bg-primary-subtle">Độ mỏng (mm)</th>
+                                <th class="text-center bg-warning">Loại</th>
+                                <th class="text-center bg-warning">Tên Model</th>
+                                <th class="text-center bg-warning">Trọng lượng (Kg)</th>
+                                <th class="text-center bg-warning">Chất liệu</th>
+                                <th class="text-center bg-warning">Độ mỏng (mm)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,7 +41,7 @@
                 </div>
             </div>
             <div class="tab-pane fade" id="performanceChartTab" role="tabpanel" aria-labelledby="chart-tab">
-                <div style="height: 420px; width: 100%;" class="d-flex justify-content-center align-items-center">
+                <div style="height: 300px; width: 100%;" class="d-flex justify-content-center align-items-center">
                     <canvas id="performanceChart"></canvas>
                 </div>
             </div>
@@ -192,7 +191,7 @@
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
         <form method="POST" action="{{ url_for('thietke.thietke_page') }}" id="alternativeComparisonForm">
             <div>
-                <h5 class="">Chọn loại laptop để đánh giá theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+                <h5 class="">Chọn loại laptop để đánh giá theo tiêu chí <strong class="text-warning">{{ criteria_name }}</strong></h5>
                 <select class="form-select" id="laptopType" name="selected_laptop_type_id"
                     onchange="this.form.submit()">
                     <option value="">-- Chọn loại laptop --</option>
@@ -269,7 +268,7 @@
     </div>
     {% if weights is not none %}
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
-        <h5 class="">Trọng số các phương án theo tiêu chí: <strong class="text-warning">{{ criteria_name }}</strong></h5>
+        <h5 class="">Trọng số và xếp hạng các phương án theo tiêu chí <strong class="text-warning">{{ criteria_name }}</strong> và loại <strong class="text-warning">{{ selected_laptop_type.name }}</strong></h5>
         <hr />
         <div style="height: 100%;">
             <canvas id="weightsChart"></canvas>
@@ -278,8 +277,8 @@
             <table class="table table-bordered table-hover" id="thietke-weights-table">
                 <thead>
                     <tr>
-                        <th class="text-center bg-primary-subtle">Phương án</th>
-                        <th class="text-center bg-primary-subtle">Trọng số</th>
+                        <th class="text-center bg-warning">Phương án</th>
+                        <th class="text-center bg-warning">Trọng số</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -367,7 +366,6 @@
     });
     </script>
 {% endif %}
-</div>
 
 <script type="text/javascript">
     document.addEventListener('DOMContentLoaded', function () {

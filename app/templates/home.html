@@ -5,7 +5,6 @@ So sánh tiêu chí
 {% endblock %}
 
 {% block content %}
-<div class="container-lg">
     <div class="py-3 px-4 shadow-lg rounded-4" style="background-color: rgb(250, 250, 250);">
         <h5 class="">Chọn loại laptop theo nhu cầu trước khi đánh giá</h5>
         <hr/>
@@ -32,7 +31,7 @@ So sánh tiêu chí
     </div>
 
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
-        <h5 class="">Đánh giá các tiêu chí trong việc lựa chọn laptop {% if selected_laptop_type %} {{ selected_laptop_type.name }} {% else %} Acer {% endif %}</h5>
+        <h5 class="">Đánh giá các tiêu chí trong việc lựa chọn {% if selected_laptop_type %} <strong class="text-warning">{{ selected_laptop_type.name }}</strong> {% else %} Acer {% endif %}</h5>
         <hr/>
         <div class="fst-italic" style="font-size: 17px;">
             - Có 7 tiêu chỉ để đánh giá bao gồm: Hiệu năng (CPU, RAM, Card đồ hoạ), Chi phí, Thiết kế (Trọng lượng, Chất
@@ -104,8 +103,8 @@ So sánh tiêu chí
                     <table class="table table-bordered table-hover">
                         <thead>
                             <tr>
-                                <th class="text-center bg-primary-subtle">Tiêu chí</th>
-                                <th class="text-center bg-primary-subtle">Trọng số</th>
+                                <th class="text-center bg-warning">Tiêu chí</th>
+                                <th class="text-center bg-warning">Trọng số</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -148,7 +147,7 @@ So sánh tiêu chí
     {% endif %}
 
     <div class="py-3 px-4 shadow-lg rounded-4 mt-4" style="background-color: rgb(250, 250, 250);">
-        <h5 class="">Xếp hạng các phương án lựa chọn theo loại {% if selected_laptop_type %} {{ selected_laptop_type.name }} {% endif %}</h5>
+        <h5 class="">Xếp hạng các phương án lựa chọn theo loại {% if selected_laptop_type %} <strong class="text-warning">{{ selected_laptop_type.name }}</strong> {% endif %}</h5>
         <hr/>
         <div class="d-flex justify-content-center">
             <div style="width: 100%; height: 100%;">
@@ -169,7 +168,6 @@ So sánh tiêu chí
             </div>
         </div>
     </div>
-</div>
 
 <script type="text/javascript">
     // Định nghĩa các biến chứa dữ liệu từ Jinja2
