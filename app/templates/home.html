@@ -211,7 +211,7 @@ So sánh tiêu chí
             input.classList.remove('is-invalid'); // Reset trạng thái invalid
 
             if (oppositeInput) {
-                oppositeInput.value = '';
+                oppositeInput.value = ''; // Xóa giá trị cũ để chuẩn bị cập nhật
 
                 if (value) {
                     if (!isInputValueValid(value)) {
@@ -219,25 +219,46 @@ So sánh tiêu chí
                         isValid = false;
                     } else {
                         let calculatedValue;
+                        let num, den;
+
                         if (value.includes('/')) {
-                            const [numStr, denStr] = value.split('/');
-                            const num = parseFloat(numStr);
-                            const den = parseFloat(denStr);
-                            if (!isNaN(num) && !isNaN(den) && den !== 0) {
-                                calculatedValue = (den / num).toString();
-                            } else {
+                            const parts = value.split('/');
+                            if (parts.length === 2) {
+                                num = parseFloat(parts[0]);
+                                den = parseFloat(parts[1]);
+                                if (!isNaN(num) && !isNaN(den) && den !== 0) {
+                                    // Nếu người dùng nhập a/b, ô nghịch đảo là b/a
+                                    // Nếu b/a là 1/1, thì hiển thị là 1
+                                    if (num === 1 && den === 1) {
+                                        calculatedValue = "1";
+                                    } else if (num === 1) { // Ví dụ nhập 1/5 -> hiển thị 5
+                                        calculatedValue = den.toString();
+                                    } else { // Ví dụ nhập 2/3 -> hiển thị 3/2
+                                        calculatedValue = `${den}/${num}`;
+                                    }
+                                } else {
+                                    isValid = false;
+                                    input.classList.add('is-invalid');
+                                }
+                            } else { // Trường hợp format không đúng ví dụ "1/2/3"
                                 isValid = false;
                                 input.classList.add('is-invalid');
                             }
                         } else {
                             const numericValue = parseFloat(value);
                             if (!isNaN(numericValue) && numericValue > 0) {
-                                calculatedValue = (1 / numericValue).toString();
+                                if (numericValue === 1) {
+                                    calculatedValue = "1";
+                                } else {
+                                    // Nếu người dùng nhập số nguyên n, ô nghịch đảo là 1/n
+                                    calculatedValue = `1/${numericValue}`;
+                                }
                             } else {
                                 isValid = false;
                                 input.classList.add('is-invalid');
                             }
                         }
+
                         if (isValid) {
                             oppositeInput.value = calculatedValue;
                         }
@@ -246,7 +267,6 @@ So sánh tiêu chí
             }
             return isValid;
         };
-
         // Khôi phục dữ liệu từ Local Storage
         upperInputs.forEach(input => {
             if (comparisonValues[input.name]) {

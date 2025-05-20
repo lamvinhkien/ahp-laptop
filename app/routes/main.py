@@ -4,12 +4,14 @@ from flask import Blueprint, render_template, request, session, send_file
 from app import db
 from app.models import Criteria, Alternatives, AlternativeComparison, LaptopType
 import numpy as np
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.lib.enums import TA_CENTER, TA_RIGHT
+from reportlab.platypus import Paragraph, Table, TableStyle, Spacer, SimpleDocTemplate
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import cm
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfbase import pdfmetrics
+from flask import session, send_file
 from datetime import datetime
 
 main_bp = Blueprint("main", __name__)
@@ -17,6 +19,9 @@ main_bp = Blueprint("main", __name__)
 # Đường dẫn đến thư mục result
 RESULT_FOLDER = os.path.join(os.getcwd(), 'result')
 os.makedirs(RESULT_FOLDER, exist_ok=True) # Đảm bảo thư mục tồn tại
+
+font_path = os.path.join(os.getcwd(), 'fonts', 'Roboto-Regular.ttf')
+pdfmetrics.registerFont(TTFont('Roboto', font_path))
 
 preference_scale = {
     1 / 9: "1/9 - Ít quan trọng tuyệt đối hơn nhiều",
@@ -176,99 +181,126 @@ def export_pdf():
     criteria_names = [c.name for c in criteria]
     weights = session.get('weights')
     comparison_values = session.get('criteria_comparison_values', {})
-    ranked_alternatives_data = session.get('ranked_alternatives', []) # Lấy dữ liệu xếp hạng từ session
+    ranked_alternatives_data = session.get('ranked_alternatives', [])  # Lấy dữ liệu xếp hạng từ session
 
-    # Lấy thời gian hiện tại và định dạng nó
     now = datetime.now()
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     pdf_filename = f"ket_qua_ahp_{timestamp}.pdf"
     pdf_path = os.path.join(RESULT_FOLDER, pdf_filename)
 
-    doc = SimpleDocTemplate(pdf_path, pagesize=letter)
+    # Đăng ký font Roboto từ file đã tải
+    font_path = os.path.join(os.getcwd(), 'fonts', 'Roboto-Regular.ttf')
+    pdfmetrics.registerFont(TTFont('Roboto', font_path))
+
+    doc = SimpleDocTemplate(pdf_path, pagesize=A4,
+                            rightMargin=2 * cm, leftMargin=2 * cm,
+                            topMargin=2 * cm, bottomMargin=2 * cm)
+
     styles = getSampleStyleSheet()
+    # Gán font Roboto cho tất cả các style mặc định
+    for style_name in styles.byName:
+        styles[style_name].fontName = 'Roboto'
+
     story = []
 
     # Tiêu đề
-    story.append(Paragraph("<b>Kết quả phân tích lựa chọn Laptop Acer</b>", styles['h1']))
+    story.append(Paragraph("<b>Kết quả phân tích lựa chọn Laptop Acer</b>", styles['Title']))
     story.append(Spacer(1, 12))
 
     # Loại laptop đã chọn
     if selected_laptop_type:
-        story.append(Paragraph(f"<b>Loại laptop đã chọn:</b> {selected_laptop_type.name}", styles['h2']))
+        story.append(Paragraph(f"<b>Loại laptop đã chọn:</b> {selected_laptop_type.name}", styles['Heading2']))
         story.append(Spacer(1, 12))
 
     # Bảng ma trận so sánh cặp tiêu chí
-    story.append(Paragraph("<b>Ma trận so sánh cặp tiêu chí</b>", styles['h2']))
+    story.append(Paragraph("<b>Ma trận so sánh cặp tiêu chí</b>", styles['Heading2']))
     comparison_data = [[""] + criteria_names]
     n = len(criteria)
     for i in range(n):
         row = [criteria_names[i]]
         for j in range(n):
-            comparison_id = f"comparison_{criteria[i].id}_{criteria[j].id}"
-            value = comparison_values.get(comparison_id, "1") if i <= j else ""
-            # Lấy giá trị nghịch đảo nếu i > j
-            if i > j:
+            if i <= j:
+                comparison_id = f"comparison_{criteria[i].id}_{criteria[j].id}"
+                value = comparison_values.get(comparison_id, "1")
+            else:
                 comparison_id_above = f"comparison_{criteria[j].id}_{criteria[i].id}"
                 submitted_value_above = comparison_values.get(comparison_id_above, "1")
                 try:
                     value = str(1 / eval(submitted_value_above)) if submitted_value_above and eval(submitted_value_above) != 0 else "1"
                 except:
                     value = "1"
-            row.append(value if i <= j else value)
+            row.append(value)
         comparison_data.append(row)
 
-    comparison_table = Table(comparison_data)
-    comparison_table.setStyle(TableStyle([
+    table = Table(comparison_data, colWidths=[3 * cm] + [2 * cm] * n)
+    table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
+        ('FONTSIZE', (0, 0), (-1, -1), 10),
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
     ]))
-    story.append(comparison_table)
+    story.append(table)
     story.append(Spacer(1, 12))
 
-    # Bảng trọng số các tiêu chí
+    # Trọng số tiêu chí
     if weights:
-        story.append(Paragraph("<b>Trọng số các tiêu chí</b>", styles['h2']))
+        story.append(Paragraph("<b>Trọng số tiêu chí</b>", styles['Heading2']))
         weights_data = [["Tiêu chí", "Trọng số"]]
         for i, weight in enumerate(weights):
-            weights_data.append([criteria_names[i], f"{weight * 100:.2f}%"])
-        weights_table = Table(weights_data)
-        weights_table.setStyle(TableStyle([
+            weights_data.append([criteria_names[i], f"{weight:.4f}"])
+        weight_table = Table(weights_data, colWidths=[8 * cm, 3 * cm])
+        weight_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ]))
-        story.append(weights_table)
+        story.append(weight_table)
         story.append(Spacer(1, 12))
 
-    # Bảng xếp hạng phương án (nếu có dữ liệu)
-    if ranked_alternatives_data and len(ranked_alternatives_data) > 0:
-        story.append(Paragraph("<b>Xếp hạng các phương án</b>", styles['h2']))
-        ranked_data = [["Phương án", "Điểm số"]]
-        for item in ranked_alternatives_data:
-            ranked_data.append([item['alternative'], f"{item['score'] * 100:.2f}%"])
-        ranked_table = Table(ranked_data)
+    # CR
+    cr = session.get('cr')
+    if cr is not None:
+        story.append(Paragraph(f"<b>Tỷ số nhất quán CR:</b> {cr:.4f}", styles['Normal']))
+        story.append(Spacer(1, 12))
+
+    # Xếp hạng các lựa chọn
+    if ranked_alternatives_data:
+        story.append(Paragraph("<b>Danh sách xếp hạng các lựa chọn</b>", styles['Heading2']))
+
+        # Style cho tên lựa chọn
+        wrap_style = ParagraphStyle(
+            name='WrapStyle',
+            fontName='Roboto',
+            fontSize=10,
+            leading=12,
+            wordWrap='CJK',  # Hỗ trợ tiếng Việt hoặc đoạn dài
+            alignment=0,      # LEFT
+        )
+
+        ranked_data = [["STT", "Tên lựa chọn", "Điểm số"]]
+        for idx, item in enumerate(ranked_alternatives_data, 1):
+            name = item.get('name', '')
+            name_paragraph = Paragraph(name, wrap_style)
+            ranked_data.append([str(idx), name_paragraph, f"{item.get('score', 0):.4f}"])
+
+        ranked_table = Table(ranked_data, colWidths=[2 * cm, 11 * cm, 3 * cm])
         ranked_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+            ('ALIGN', (2, 1), (2, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
+            ('FONTSIZE', (0, 0), (-1, -1), 10),
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ]))
         story.append(ranked_table)
-        story.append(Spacer(1, 12))
-    else:
-        story.append(Paragraph("<b>Chưa có dữ liệu xếp hạng phương án.</b>", styles['h3']))
         story.append(Spacer(1, 12))
 
     doc.build(story)
