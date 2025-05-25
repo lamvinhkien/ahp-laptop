@@ -43,6 +43,26 @@ preference_scale = {
     9: "9 - Quan trọng tuyệt đối hơn nhiều",
 }
 
+# Hàm mới để chuyển đổi tên tiêu chí
+def get_abbreviated_criteria_name(name):
+    if name == "Thời gian bảo hành":
+        return "TGBH"
+    if name == "Thời lượng sử dụng":
+        return "TLSD"
+    return name
+
+# Hàm mới để lấy giá trị hiển thị từ giá trị số (ví dụ: 0.111 -> "1/9")
+def get_display_value_from_numeric(numeric_val):
+    # Sử dụng tolerance cho so sánh số thực
+    tolerance = 1e-6
+    for key_val, display_str_full in preference_scale.items():
+        if np.isclose(numeric_val, key_val, atol=tolerance):
+            # Trích xuất phần số/phân số từ chuỗi đầy đủ (ví dụ: "1/9 - ..." -> "1/9")
+            return display_str_full.split(' - ')[0]
+    # Nếu không khớp với giá trị nào trong scale, làm tròn và trả về dưới dạng chuỗi
+    # Điều này xảy ra nếu có lỗi tính toán hoặc giá trị không thuộc thang AHP chuẩn
+    return f"{numeric_val:.3f}" # Làm tròn đến 3 chữ số thập phân nếu không có dạng phân số
+
 preference_options = sorted(preference_scale.keys())
 
 
@@ -210,24 +230,36 @@ def export_pdf():
     # Loại laptop đã chọn
     if selected_laptop_type:
         story.append(Paragraph(f"<b>Loại laptop đã chọn:</b> {selected_laptop_type.name}", styles['Heading2']))
-        story.append(Spacer(1, 12))
 
     # Bảng ma trận so sánh cặp tiêu chí
     story.append(Paragraph("<b>Ma trận so sánh cặp tiêu chí</b>", styles['Heading2']))
-    comparison_data = [[""] + criteria_names]
+
+    # Áp dụng hàm chuyển đổi tên tiêu chí cho tiêu đề cột
+    abbreviated_criteria_names = [get_abbreviated_criteria_name(name) for name in criteria_names]
+    comparison_data = [[""] + abbreviated_criteria_names]
+
     n = len(criteria)
     for i in range(n):
-        row = [criteria_names[i]]
+    # Áp dụng hàm chuyển đổi tên tiêu chí cho tiêu đề hàng
+        row = [get_abbreviated_criteria_name(criteria_names[i])]
         for j in range(n):
-            if i <= j:
+            if i == j:
+                value = "1"
+            elif i < j:
                 comparison_id = f"comparison_{criteria[i].id}_{criteria[j].id}"
                 value = comparison_values.get(comparison_id, "1")
-            else:
+            else: # i > j, ô nghịch đảo
                 comparison_id_above = f"comparison_{criteria[j].id}_{criteria[i].id}"
                 submitted_value_above = comparison_values.get(comparison_id_above, "1")
                 try:
-                    value = str(1 / eval(submitted_value_above)) if submitted_value_above and eval(submitted_value_above) != 0 else "1"
-                except:
+                    # Chuyển đổi chuỗi nhập liệu thành số thực
+                    val = eval(submitted_value_above)
+                    # Đảm bảo không chia cho 0. Nếu val là 0, đặt là 0.0 để tránh lỗi và xử lý tiếp.
+                    inverted_value_numeric = 1 / val if val != 0 else 0.0
+                    # Sử dụng hàm mới để lấy giá trị hiển thị dạng phân số/số nguyên
+                    value = get_display_value_from_numeric(inverted_value_numeric)
+                except (ValueError, TypeError, ZeroDivisionError, SyntaxError):
+                    # Nếu có lỗi khi eval hoặc tính toán, đặt giá trị mặc định là "1"
                     value = "1"
             row.append(value)
         comparison_data.append(row)
@@ -249,7 +281,8 @@ def export_pdf():
         story.append(Paragraph("<b>Trọng số tiêu chí</b>", styles['Heading2']))
         weights_data = [["Tiêu chí", "Trọng số"]]
         for i, weight in enumerate(weights):
-            weights_data.append([criteria_names[i], f"{weight:.4f}"])
+            # Chuyển đổi trọng số sang % và làm tròn 2 chữ số thập phân
+            weights_data.append([criteria_names[i], f"{weight * 100:.2f}%"]) # Thay đổi ở đây
         weight_table = Table(weights_data, colWidths=[8 * cm, 3 * cm])
         weight_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -265,8 +298,8 @@ def export_pdf():
     # CR
     cr = session.get('cr')
     if cr is not None:
-        story.append(Paragraph(f"<b>Tỷ số nhất quán CR:</b> {cr:.4f}", styles['Normal']))
-        story.append(Spacer(1, 12))
+        # Chuyển đổi CR sang % và làm tròn 2 chữ số thập phân
+        story.append(Paragraph(f"<b>Tỷ số nhất quán CR:</b> {cr * 100:.2f}%", styles['Normal'])) # Thay đổi ở đây
 
     # Xếp hạng các lựa chọn
     if ranked_alternatives_data:
@@ -275,33 +308,29 @@ def export_pdf():
         # Style cho tên lựa chọn
         wrap_style = ParagraphStyle(
             name='WrapStyle',
-            fontName='Roboto',
+            fontName='Roboto', # Giữ nguyên Roboto
             fontSize=10,
             leading=12,
-            wordWrap='CJK',  # Hỗ trợ tiếng Việt hoặc đoạn dài
-            alignment=0,      # LEFT
+            wordWrap='CJK',
         )
 
         ranked_data = [["STT", "Tên lựa chọn", "Điểm số"]]
         for idx, item in enumerate(ranked_alternatives_data, 1):
-            name = item.get('name', '')
-            name_paragraph = Paragraph(name, wrap_style)
-            ranked_data.append([str(idx), name_paragraph, f"{item.get('score', 0):.4f}"])
+            alternative_name = item.get('alternative', '')
+            name_paragraph = Paragraph(alternative_name, wrap_style)
+            # Chuyển đổi điểm số sang % và làm tròn 2 chữ số thập phân
+            ranked_data.append([str(idx), name_paragraph, f"{item.get('score', 0) * 100:.2f}%"]) # Thay đổi ở đây
 
         ranked_table = Table(ranked_data, colWidths=[2 * cm, 11 * cm, 3 * cm])
         ranked_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
-            ('ALIGN', (0, 1), (0, -1), 'CENTER'),
-            ('ALIGN', (2, 1), (2, -1), 'CENTER'),
+            ('ALIGN', (1, 1), (-1, -1), 'CENTER'), # Bạn có thể muốn ALIGN LEFT cho cột tên lựa chọn
             ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
         ]))
         story.append(ranked_table)
-        story.append(Spacer(1, 12))
 
     doc.build(story)
 
