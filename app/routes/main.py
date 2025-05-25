@@ -11,6 +11,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import cm
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfbase import pdfmetrics
+from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from flask import session, send_file
 from datetime import datetime
 
@@ -224,7 +225,7 @@ def export_pdf():
     story = []
 
     # Tiêu đề
-    story.append(Paragraph("<b>Kết quả phân tích lựa chọn Laptop Acer</b>", styles['Title']))
+    story.append(Paragraph("<b>Kết quả phân tích lựa chọn Laptop thương hiệu Acer</b>", styles['Title']))
     story.append(Spacer(1, 12))
 
     # Loại laptop đã chọn
@@ -232,7 +233,7 @@ def export_pdf():
         story.append(Paragraph(f"<b>Loại laptop đã chọn:</b> {selected_laptop_type.name}", styles['Heading2']))
 
     # Bảng ma trận so sánh cặp tiêu chí
-    story.append(Paragraph("<b>Ma trận so sánh cặp tiêu chí</b>", styles['Heading2']))
+    story.append(Paragraph("<b>Ma trận so sánh cặp các tiêu chí</b>", styles['Heading2']))
 
     # Áp dụng hàm chuyển đổi tên tiêu chí cho tiêu đề cột
     abbreviated_criteria_names = [get_abbreviated_criteria_name(name) for name in criteria_names]
@@ -240,7 +241,7 @@ def export_pdf():
 
     n = len(criteria)
     for i in range(n):
-    # Áp dụng hàm chuyển đổi tên tiêu chí cho tiêu đề hàng
+        # Áp dụng hàm chuyển đổi tên tiêu chí cho tiêu đề hàng
         row = [get_abbreviated_criteria_name(criteria_names[i])]
         for j in range(n):
             if i == j:
@@ -264,29 +265,51 @@ def export_pdf():
             row.append(value)
         comparison_data.append(row)
 
-    table = Table(comparison_data, colWidths=[3 * cm] + [2 * cm] * n)
-    table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
+    # Định nghĩa màu sắc tùy chỉnh
+    LIGHT_BLUE = colors.HexColor('#A1DEF3') # Một màu xám nhạt
+    YELLOW = colors.HexColor('#FFFF99')    # Một màu vàng nhạt
+
+    # Tạo danh sách các style cho bảng
+    table_styles = [
+        # Đường lưới chung
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+        # Font và kích thước chung cho tất cả các ô
         ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
         ('FONTSIZE', (0, 0), (-1, -1), 10),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-    ]))
+        # Căn giữa nội dung cho tất cả các ô (trừ cột đầu tiên nếu muốn căn trái)
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'), # Căn giữa theo chiều dọc
+
+        # Style cho hàng tiêu đề (dòng 1)
+        ('BACKGROUND', (0, 0), (-1, 0), LIGHT_BLUE), # Nền xám nhạt cho toàn bộ hàng tiêu đề
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.black), # Chữ đen trên nền xám
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12), # Khoảng cách dưới tiêu đề
+
+        # Style cho cột tiêu đề hàng (cột 1, bắt đầu từ hàng thứ 2 trở đi để không ghi đè lên ô (0,0))
+        ('BACKGROUND', (0, 1), (0, -1), LIGHT_BLUE), # Nền xám nhạt cho cột tiêu đề hàng
+        ('TEXTCOLOR', (0, 1), (0, -1), colors.black), # Chữ đen trên nền xám
+    ]
+
+    # Thêm style cho từng ô trên đường chéo chính
+    for i in range(n): # n là số lượng tiêu chí
+        # Ô đường chéo chính trong ma trận dữ liệu thực tế là (i+1, i+1) trong bảng ReportLab
+        table_styles.append(('BACKGROUND', (i+1, i+1), (i+1, i+1), YELLOW)) # Nền vàng cho ô đường chéo
+
+    table = Table(comparison_data, colWidths=[3 * cm] + [2 * cm] * n)
+    table.setStyle(TableStyle(table_styles)) # Áp dụng danh sách các style
     story.append(table)
     story.append(Spacer(1, 12))
 
     # Trọng số tiêu chí
     if weights:
-        story.append(Paragraph("<b>Trọng số tiêu chí</b>", styles['Heading2']))
+        story.append(Paragraph("<b>Trọng số các tiêu chí</b>", styles['Heading2']))
         weights_data = [["Tiêu chí", "Trọng số"]]
         for i, weight in enumerate(weights):
             # Chuyển đổi trọng số sang % và làm tròn 2 chữ số thập phân
             weights_data.append([criteria_names[i], f"{weight * 100:.2f}%"]) # Thay đổi ở đây
         weight_table = Table(weights_data, colWidths=[8 * cm, 3 * cm])
         weight_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('BACKGROUND', (0, 0), (-1, 0), LIGHT_BLUE),
             ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
@@ -296,14 +319,45 @@ def export_pdf():
         story.append(Spacer(1, 12))
 
     # CR
+    COLOR_TEXT_GOOD = colors.green
+    COLOR_TEXT_BAD = colors.red
+
     cr = session.get('cr')
     if cr is not None:
-        # Chuyển đổi CR sang % và làm tròn 2 chữ số thập phân
-        story.append(Paragraph(f"<b>Tỷ số nhất quán CR:</b> {cr * 100:.2f}%", styles['Normal'])) # Thay đổi ở đây
+        cr_text = f"Tỷ số nhất quán (CR): <b>{cr * 100:.2f}%</b>. "
+        cr_style_props = {
+            'fontName': 'Roboto', # Luôn dùng Roboto-Bold
+            'fontSize': 12,
+            'leading': 16,
+            'alignment': TA_CENTER, # Luôn căn giữa
+        }
+
+        if cr >= 0.10: # Nếu CR >= 10%
+            cr_text += "Đánh giá này <b>không phù hợp</b> để đưa ra kết luận."
+            cr_style_props['textColor'] = COLOR_TEXT_BAD # Màu đỏ
+        else: # Nếu CR < 10%
+            cr_text += "Đánh giá này <b>phù hợp</b> để đưa ra kết luận."
+            cr_style_props['textColor'] = COLOR_TEXT_GOOD # Màu xanh
+
+        # Tạo một ParagraphStyle tạm thời từ styles['Normal'] và cập nhật các thuộc tính
+        # Cách này sẽ kế thừa các thuộc tính của styles['Normal'] và chỉ thay đổi những gì bạn muốn.
+        cr_paragraph_style = ParagraphStyle(name='CR_Dynamic_Style', **cr_style_props)
+        
+        story.append(Paragraph(cr_text, cr_paragraph_style))
+
+    else:
+        # Nếu không xác định được CR, vẫn hiển thị màu đỏ và căn giữa
+        missing_cr_style = ParagraphStyle(name='CR_Missing_Style',
+                                        fontName='Roboto',
+                                        fontSize=12,
+                                        leading=16,
+                                        alignment=TA_CENTER,
+                                        textColor=COLOR_TEXT_BAD)
+        story.append(Paragraph("Không thể xác định tỷ số nhất quán (CR).", missing_cr_style))
 
     # Xếp hạng các lựa chọn
     if ranked_alternatives_data:
-        story.append(Paragraph("<b>Danh sách xếp hạng các lựa chọn</b>", styles['Heading2']))
+        story.append(Paragraph("<b>Danh sách xếp hạng phương án các lựa chọn</b>", styles['Heading2']))
 
         # Style cho tên lựa chọn
         wrap_style = ParagraphStyle(
@@ -323,8 +377,7 @@ def export_pdf():
 
         ranked_table = Table(ranked_data, colWidths=[2 * cm, 11 * cm, 3 * cm])
         ranked_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('BACKGROUND', (0, 0), (-1, 0), LIGHT_BLUE),
             ('ALIGN', (1, 1), (-1, -1), 'CENTER'), # Bạn có thể muốn ALIGN LEFT cho cột tên lựa chọn
             ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
