@@ -4,7 +4,7 @@ from flask import Blueprint, render_template, request, session, send_file
 from app import db
 from app.models import Criteria, Alternatives, AlternativeComparison, LaptopType
 import numpy as np
-from reportlab.platypus import Paragraph, Table, TableStyle, Spacer, SimpleDocTemplate
+from reportlab.platypus import Paragraph, Table, TableStyle, Spacer, SimpleDocTemplate, Image
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
@@ -14,6 +14,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
 from flask import session, send_file
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 main_bp = Blueprint("main", __name__)
 
@@ -225,12 +226,13 @@ def export_pdf():
     story = []
 
     # Tiêu đề
-    story.append(Paragraph("<b>Kết quả phân tích lựa chọn Laptop thương hiệu Acer</b>", styles['Title']))
-    story.append(Spacer(1, 12))
+    story.append(Paragraph("<b>KẾT QUẢ PHÂN TÍCH LỰA CHỌN LAPTOP ACER</b>", styles['Title']))
+    story.append(Spacer(1, 25))
 
     # Loại laptop đã chọn
     if selected_laptop_type:
         story.append(Paragraph(f"<b>Loại laptop đã chọn:</b> {selected_laptop_type.name}", styles['Heading2']))
+        story.append(Spacer(1, 25))
 
     # Bảng ma trận so sánh cặp tiêu chí
     story.append(Paragraph("<b>Ma trận so sánh cặp các tiêu chí</b>", styles['Heading2']))
@@ -298,25 +300,38 @@ def export_pdf():
     table = Table(comparison_data, colWidths=[3 * cm] + [2 * cm] * n)
     table.setStyle(TableStyle(table_styles)) # Áp dụng danh sách các style
     story.append(table)
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 25))
 
     # Trọng số tiêu chí
     if weights:
         story.append(Paragraph("<b>Trọng số các tiêu chí</b>", styles['Heading2']))
-        weights_data = [["Tiêu chí", "Trọng số"]]
-        for i, weight in enumerate(weights):
-            # Chuyển đổi trọng số sang % và làm tròn 2 chữ số thập phân
-            weights_data.append([criteria_names[i], f"{weight * 100:.2f}%"]) # Thay đổi ở đây
-        weight_table = Table(weights_data, colWidths=[8 * cm, 3 * cm])
-        weight_table.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), LIGHT_BLUE),
-            ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
-            ('FONTSIZE', (0, 0), (-1, -1), 10),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ]))
-        story.append(weight_table)
-        story.append(Spacer(1, 12))
+
+        # Vẽ biểu đồ cột thể hiện trọng số
+        plt.figure(figsize=(10, 5))
+        criteria_labels = criteria_names
+        weights_percent = [w * 100 for w in weights]
+        bars = plt.bar(criteria_labels, weights_percent, color='#66b3ff')
+
+        # Gán giá trị lên trên từng cột
+        for bar, weight in zip(bars, weights_percent):
+            plt.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + 0.5,
+                     f"{weight:.2f}%", ha='center', va='bottom', fontsize=9)
+
+        plt.xlabel("Tiêu chí")
+        plt.ylabel("Trọng số (%)")
+        plt.title("Biểu đồ trọng số các tiêu chí")
+        plt.tight_layout()
+
+        # Lưu biểu đồ vào buffer
+        chart_buffer = BytesIO()
+        plt.savefig(chart_buffer, format='png')
+        chart_buffer.seek(0)
+        plt.close()
+
+        # Thêm biểu đồ vào file PDF
+        chart_image = Image(chart_buffer, width=16 * cm, height=9 * cm)  # điều chỉnh kích thước nếu cần
+        story.append(chart_image)
+        story.append(Spacer(1, 25))
 
     # CR
     COLOR_TEXT_GOOD = colors.green
@@ -355,6 +370,9 @@ def export_pdf():
                                         textColor=COLOR_TEXT_BAD)
         story.append(Paragraph("Không thể xác định tỷ số nhất quán (CR).", missing_cr_style))
 
+
+    story.append(Spacer(1, 35))
+
     # Xếp hạng các lựa chọn
     if ranked_alternatives_data:
         story.append(Paragraph("<b>Danh sách xếp hạng phương án các lựa chọn</b>", styles['Heading2']))
@@ -362,7 +380,7 @@ def export_pdf():
         # Style cho tên lựa chọn
         wrap_style = ParagraphStyle(
             name='WrapStyle',
-            fontName='Roboto', # Giữ nguyên Roboto
+            fontName='Roboto',
             fontSize=10,
             leading=12,
             wordWrap='CJK',
@@ -372,18 +390,61 @@ def export_pdf():
         for idx, item in enumerate(ranked_alternatives_data, 1):
             alternative_name = item.get('alternative', '')
             name_paragraph = Paragraph(alternative_name, wrap_style)
-            # Chuyển đổi điểm số sang % và làm tròn 2 chữ số thập phân
-            ranked_data.append([str(idx), name_paragraph, f"{item.get('score', 0) * 100:.2f}%"]) # Thay đổi ở đây
+            ranked_data.append([str(idx), name_paragraph, f"{item.get('score', 0) * 100:.2f}%"])
 
+        # Tạo bảng
         ranked_table = Table(ranked_data, colWidths=[2 * cm, 11 * cm, 3 * cm])
-        ranked_table.setStyle(TableStyle([
+
+        # Tạo style ban đầu
+        table_style = TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), LIGHT_BLUE),
-            ('ALIGN', (1, 1), (-1, -1), 'CENTER'), # Bạn có thể muốn ALIGN LEFT cho cột tên lựa chọn
+            ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, -1), 'Roboto'),
             ('FONTSIZE', (0, 0), (-1, -1), 10),
             ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
-        ]))
+        ])
+
+        # Thêm hiệu ứng striped: màu nền xen kẽ từng dòng
+        for i in range(1, len(ranked_data)):
+            if i % 2 == 0:
+                table_style.add('BACKGROUND', (0, i), (-1, i), colors.white)
+            else:
+                table_style.add('BACKGROUND', (0, i), (-1, i), colors.HexColor('#ededed'))
+
+        ranked_table.setStyle(table_style)
         story.append(ranked_table)
+
+        story.append(Spacer(1, 25))
+
+        story.append(Paragraph("<b>Biểu đồ xếp hạng các phương án</b>", styles['Heading2']))
+        # Sắp xếp theo thứ tự giảm dần để hiển thị đẹp
+        sorted_alts = sorted(ranked_alternatives_data, key=lambda x: x['score'], reverse=True)
+        alt_names = [alt['alternative'] for alt in sorted_alts]
+        alt_scores = [alt['score'] for alt in sorted_alts]
+
+        plt.figure(figsize=(10, 6))
+        bars = plt.barh(alt_names, alt_scores, color='#FFCC99')
+
+        # Ghi số điểm lên từng cột
+        for bar, score in zip(bars, alt_scores):
+            plt.text(bar.get_width() + 0.01, bar.get_y() + bar.get_height()/2,
+                     f"{score:.4f}", va='center', fontsize=9)
+
+        plt.xlabel("Điểm đánh giá")
+        plt.ylabel("Phương án")
+        plt.title("Biểu đồ xếp hạng các phương án theo AHP")
+        plt.gca().invert_yaxis()  # Đảo ngược trục Y để phương án cao nhất ở trên cùng
+        plt.tight_layout()
+
+        # Lưu biểu đồ vào buffer
+        alt_chart_buffer = BytesIO()
+        plt.savefig(alt_chart_buffer, format='png')
+        alt_chart_buffer.seek(0)
+        plt.close()
+
+        # Thêm biểu đồ vào file PDF
+        alt_chart_image = Image(alt_chart_buffer, width=16 * cm, height=9 * cm)
+        story.append(alt_chart_image)
 
     doc.build(story)
 
